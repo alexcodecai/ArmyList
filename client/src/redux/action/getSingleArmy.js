@@ -2,35 +2,33 @@ import axios from "axios";
 
 function requestStart() {
   return {
-    type: "REQUEST_Armies_START"
+    type: "REQUEST_GETSINGLEARMY_START"
   };
 }
 
-function requestSuccess(armies) {
+function requestSuccess(army) {
   return {
-    type: "REQUEST_Armies_SUCCESS",
-    armies
+    type: "REQUEST_GETSINGLEARMY_SUCCESS",
+    army
   };
 }
 
 function requestFail(error) {
   return {
-    type: "REQUEST_Armies_FAIL",
+    type: "REQUEST_GETSINGLEARMY_FAIL",
     error
   };
 }
 
-export function getSuperior(id) {
-  // let sort = condition.sort;
-  // let key = condition.key
+
+export function getSingleArmy(id) {
   return dispatch => {
     dispatch(requestStart());
     axios
-      .get(`/api/army/superior/${id}`)
+      .get(`/api/single/${id}`)
       .then(response => {
-        console.log("31", response.data)
         dispatch(requestSuccess(response.data));
-        console.log("33", response.data)
+        console.log('responsedata',response.data )
       })
       .catch(error => {
         dispatch(requestFail(error));

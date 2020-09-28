@@ -1,10 +1,11 @@
 import { combineReducers } from "redux";
 import armies from "./armies"
-import getSuperior from './getSuperior'
+import getSingleArmy from './getSingleArmy'
+
 
 const reducers = combineReducers({
   armies,
-  getSuperior
+  getSingleArmy
 });
 
 export default reducers;

@@ -1,4 +1,7 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import EditIcon from "@material-ui/icons/Edit";
+
 
 const UserEntry = props => {
   const imageStyle = { width: 50, height: 50 };
@@ -15,7 +18,9 @@ const UserEntry = props => {
       <td>{props.army.phone}</td>
       <td>{props.army.email}</td>
       <td
-        style={ props.army.superior ? { cursor: "pointer", color: "grey" } : null } 
+        style={
+          props.army.superior ? { cursor: "pointer", color: "grey" } : null
+        }
         onClick={
           props.army.superior
             ? e => props.showSuperior(e, props.army.superior)
@@ -24,9 +29,28 @@ const UserEntry = props => {
       >
         {props.army.superior}
       </td>
-      <td>{props.army.subordinate.length}</td>
-      <td>Edit</td>
-      <td>Delete</td>
+      <td
+        style={
+          props.army.subordinate ? { cursor: "pointer", color: "grey" } : null
+        }
+        onClick={
+          props.army.subordinate
+            ? e => props.showSubordinate(e, props.army.subordinate)
+            : null
+        }
+      >
+        {props.army.subordinate.length}
+      </td>
+      <td>
+        <Link to={`/EditArmy/${props.army._id}`}>
+          <EditIcon />
+          edit
+        </Link>
+      </td>
+      <td
+       style = { {cursor : "pointer", color: "black"}}
+       onClick = { e=> props.removeArmy(e, props.army_id, props.army.name, props.army.superior)}
+      >Delete</td>
     </tr>
   );
 };

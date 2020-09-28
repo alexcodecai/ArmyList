@@ -14,6 +14,7 @@ function requestFail(error) {
 }
 
 export function addArmy(payload) {
+  console.log("add payload", payload)
   return dispatch => {
     dispatch(requestStart());
     axios({
@@ -26,7 +27,7 @@ export function addArmy(payload) {
     })
       // .post("/api/army", payload)
       .then(response => {
-        console.log(response);
+        console.log(response.data);
       })
       .catch(err => {
         dispatch(requestFail(err));

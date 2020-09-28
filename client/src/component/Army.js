@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { getArmies } from "../redux/action/army";
-import {getSuperior} from "../redux/action/getSuperior"
+import {deleteArmy} from "../redux/action/deleteArmy";
 import ArmyEntry from "./ArmyEntry";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import ArrowDropUpIcon from "@material-ui/icons/ArrowDropUp";
@@ -17,10 +17,11 @@ const debounceCreator = () => {
 };
 const getSearchHelper = debounceCreator();
 
-
-function Army({ getArmies, armies, getSuperior}) {
+function Army({ getArmies, armies, deleteArmy }) {
   const [sort, setSort] = useState("");
   const [key, setKey] = useState("");
+  const [superior, setSuperior] = useState("");
+  const [subordinate, setSubordinate] = useState([]);
   //const [id, setId] = useState("");
 
   const currentUsers = armies.data.slice(0, 10);
@@ -29,6 +30,8 @@ function Army({ getArmies, armies, getSuperior}) {
   let condition = {
     sort: sort,
     key: key.trim(),
+    superior: superior,
+    subordinate: subordinate
   };
 
   useEffect(() => {
@@ -37,7 +40,7 @@ function Army({ getArmies, armies, getSuperior}) {
 
   useEffect(() => {
     getSearchHelper(getArmies, 800, condition);
-  }, [sort, key]);
+  }, [sort, key, superior, subordinate]);
 
   const handleSearch = e => {
     setKey(e.target.value);
@@ -51,16 +54,36 @@ function Army({ getArmies, armies, getSuperior}) {
   };
 
   const handleReset = e => {
-    setKey('');
-    setSort('');
+    setKey("");
+    setSort("");
+    setSuperior("");
+    setSubordinate([]);
     getArmies(condition);
-  }
+  };
 
   const showSuperior = (e, id) => {
     e.preventDefault();
-   getSuperior(id)
+    setSuperior(id);
+    console.log("super", superior);
+    console.log("condition", condition);
+    getArmies(condition);
+  };
+
+  const showSubordinate = (e, subordinate) => {
+    e.preventDefault();
+    setSubordinate(subordinate);
+    console.log("super", subordinate);
+    console.log("condition", condition);
+    getArmies(condition);
+  };
+
+  const removeArmy =(e, id, sub, boss) => {
+    e.preventDefault();
+    console.log('------------', id, sub, boss)
+    deleteArmy(condition, id, sub, boss)
   }
 
+  console.log("army====", armies);
   if (armies.error !== "") {
     return <p>{armies.error}</p>;
   }
@@ -68,7 +91,7 @@ function Army({ getArmies, armies, getSuperior}) {
     <div>
       <h1>Search Users</h1>
       <div className="top-content">
-        <div className ='search-input'>
+        <div className="search-input">
           <form onSubmit={e => e.preventDefault()}>
             <input
               type="text"
@@ -82,9 +105,12 @@ function Army({ getArmies, armies, getSuperior}) {
             <p style={{ color: "red" }}>No such a user exist in our database</p>
           )}
         </div>
-        <div className = "top-right">
-          <button onClick ={handleReset}>Reset</button>
-          <button> <Link to="/AddArmy">Add New Soilder </Link></button>
+        <div className="top-right">
+          <button onClick={handleReset}>Reset</button>
+          <button>
+            {" "}
+            <Link to="/AddArmy">Add New Soilder </Link>
+          </button>
         </div>
       </div>
       <table className="content-table">
@@ -153,7 +179,13 @@ function Army({ getArmies, armies, getSuperior}) {
         </thead>
         <tbody>
           {armies.data.map(army => (
-            <ArmyEntry army={army} key={army._id} showSuperior ={showSuperior} />
+            <ArmyEntry
+              army={army}
+              key={army._id}
+              showSuperior={showSuperior}
+              showSubordinate={showSubordinate}
+              removeArmy={removeArmy}
+            />
           ))}
         </tbody>
       </table>
@@ -172,8 +204,8 @@ const mapDispatchToProps = dispatch => {
     getArmies: condition => {
       dispatch(getArmies(condition));
     },
-    getSuperior: (id) => {
-      dispatch(getSuperior(id))
+    deleteArmy:(condition, id, name, superior) => {
+      dispatch(deleteArmy(condition, id, name, superior))
     }
   };
 };

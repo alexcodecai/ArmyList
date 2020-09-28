@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import "./AddArmy.css";
+import "./EditArmy.css";
 import { getArmies } from "../redux/action/army";
-import { addArmy } from "../redux/action/addArmy";
+import { getSingleArmy } from "../redux/action/getSingleArmy";
 import { connect } from "react-redux";
+import { editArmy } from "../redux/action/editArmy";
 
 const Rank = [
   "General",
@@ -15,7 +16,15 @@ const Rank = [
   "Corporal"
 ];
 
-function AddArmy({ history, armies, getArmies, addArmy }) {
+function EditArmy({
+  history,
+  armies,
+  getArmies,
+  getSingleArmy,
+  army,
+  match,
+  editArmy
+}) {
   const [name, setName] = useState("");
   const [rank, setRank] = useState("");
   const [sex, setSex] = useState("");
@@ -23,36 +32,73 @@ function AddArmy({ history, armies, getArmies, addArmy }) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [superior, setSuperior] = useState("");
-  const [image, setImage] = useState("https://1000logos.net/wp-content/uploads/2017/06/U_s_army_logo_PNG3.png");
-  const [file, setFile] =useState("");
+  const [image, setImage] = useState("");
+  const [file, setFile] = useState("");
+  const [exSuperior, setExSuperior] = useState("");
+  const [exname, setExname] = useState("");
 
   const [nameValid, setNameValid] = useState(false);
-  const [rankValid, setRankValid] = useState(false)
+  const [rankValid, setRankValid] = useState(false);
   const [startDateValid, setStartDateValid] = useState(false);
   const [phoneValid, setPhoneValid] = useState(false);
   const [emailValid, setEmailValid] = useState(false);
   const [sumbitValid, setSubmitValid] = useState(false);
-  
+
   useEffect(() => {
     getArmies(condition);
   }, []);
 
+  useEffect(() => {
+    getSingleArmy(match.params.id);
+  }, []);
+
+  useEffect(() => {
+    if (army[0] !== undefined) {
+      setExSuperior(army[0].superior)
+      setExname(army[0].name)
+      setName(army[0].name);
+      setRank(army[0].rank);
+      setSex(army[0].sex);
+      setStartDate(army[0].startDate);
+      setPhoneNumber(army[0].phone);
+      setEmail(army[0].email);
+      setSuperior(army[0].superior);
+      setImage(army[0].avatar);
+      //  if (army[0].avatar.chatAt(0) === 'u'){
+      //    setImage(`http://localhost:5000` + army[0].avatar)
+      //  } else {
+      //    setImage(army[0].avatar)
+      //  }
+    }
+  }, [army]);
+
+  console.log(army[0]);
   const handleName = e => {
     setName(e.target.value);
-    let condition = /^(?=.{1,40}$)[a-zA-Z]+(?:[-'\s][a-zA-Z]+)*$/.test(e.target.value);
+    let condition = /^(?=.{1,40}$)[a-zA-Z]+(?:[-'\s][a-zA-Z]+)*$/.test(
+      e.target.value
+    );
     setNameValid(condition ? true : false);
-    setSubmitValid((condition && rankValid && startDateValid && phoneValid && emailValid) ? true : false)
+    setSubmitValid(
+      condition && rankValid && startDateValid && phoneValid && emailValid
+        ? true
+        : false
+    );
   };
 
   const handleRank = e => {
     setRank(e.target.value);
-    if (e.target.value !== ""){
+    if (e.target.value !== "") {
       condition = true;
     } else {
-      condition =false;
+      condition = false;
     }
     setRankValid(condition ? true : false);
-    setSubmitValid((name && condition && startDateValid && phoneValid && emailValid) ? true : false)
+    setSubmitValid(
+      name && condition && startDateValid && phoneValid && emailValid
+        ? true
+        : false
+    );
   };
 
   const handleSex = e => {
@@ -63,21 +109,33 @@ function AddArmy({ history, armies, getArmies, addArmy }) {
     setStartDate(e.target.value);
     let condition = /^\d{4}-\d{2}-\d{2}$/.test(e.target.value);
     setStartDateValid(condition ? true : false);
-    setSubmitValid((nameValid  && rankValid &&  condition && phoneValid && emailValid) ? true : false)
+    setSubmitValid(
+      nameValid && rankValid && condition && phoneValid && emailValid
+        ? true
+        : false
+    );
   };
 
   const handlePhone = e => {
     setPhoneNumber(e.target.value);
     let condition = /^(?:\(\d{3}\)|\d{3}-)\d{3}-\d{4}$/.test(e.target.value);
     setPhoneValid(condition ? true : false);
-    setSubmitValid((nameValid  && rankValid && startDateValid && condition && emailValid) ? true : false)
+    setSubmitValid(
+      nameValid && rankValid && startDateValid && condition && emailValid
+        ? true
+        : false
+    );
   };
 
   const handleEmail = e => {
     setEmail(e.target.value);
     let condition = /[\w\-_]+@[\w\-_]+\.\w{2,10}/.test(e.target.value);
     setEmailValid(condition ? true : false);
-    setSubmitValid((nameValid  && rankValid && startDateValid && phoneValid && condition) ? true : false)
+    setSubmitValid(
+      nameValid && rankValid && startDateValid && phoneValid && condition
+        ? true
+        : false
+    );
   };
 
   const handleSuperior = e => {
@@ -91,60 +149,59 @@ function AddArmy({ history, armies, getArmies, addArmy }) {
 
   const handleSubmit = e => {
     e.preventDefault();
-    addArmy(payload);
+    editArmy(match.params.id, payload);
     setName("");
     setRank("");
     setSex("");
     setStartDate("");
-    setEmail("");
     setPhoneNumber("");
+    setEmail("");
     setSuperior("");
-    history.push("/");
+    setImage("");
+    setExSuperior("")
   };
 
-
   const payload = new FormData();
-  payload.append("name", name)
-  payload.append("rank", rank)
-  payload.append("sex", sex)
-  payload.append("startDate", startDate)
-  payload.append("phone", phoneNumber)
-  payload.append("email", email)
-  payload.append("superior", superior)
-  payload.append("avatar", file)
+  payload.append("name", name);
+  payload.append("rank", rank);
+  payload.append("sex", sex);
+  payload.append("startDate", startDate);
+  payload.append("phone", phoneNumber);
+  payload.append("email", email);
+  payload.append("superior", superior);
+  payload.append("avatar", file);
+  payload.append("exSuperior", exSuperior)
+  payload.append('exname', exname)
 
   let condition = {
     sort: "",
     key: "",
     superior: "",
-    subordinate:[]
-};
-  console.log("image", image);
-  console.log("name", condition);
+    subordinate: []
+  };
+  console.log("rank", image);
+  if (army[0] === undefined) {
+    return <p>{army.error}</p>;
+  }
 
   return (
     <div className="addArmy">
       <div className="topfield">
-        <div className ="topleft">
-        <img 
-          src ="https://images-na.ssl-images-amazon.com/images/I/71%2BMrzDspoL._AC_SL1001_.jpg"
-          width = '200'
-          height = '200'
-          alt ='avatar'
+        <div className="topleft">
+          <img
+            src="https://images-na.ssl-images-amazon.com/images/I/71%2BMrzDspoL._AC_SL1001_.jpg"
+            width="200"
+            height="200"
+            alt="avatar"
           />
-          <div className = 'header'>
-          <h1 >New Soldier</h1>
+          <div className="header">
+            <h1>Edit Soldier</h1>
           </div>
         </div>
       </div>
       <div className="body">
         <div className="left">
-          <img
-            src={image}
-            width="700"
-            height="700"
-            alt= 'headpic'
-          />
+          <img src={image} width="700" height="700" alt="headpic" />
           <label>image:</label>
           <input type="file" onChange={handleUploadPic}></input>
         </div>
@@ -152,8 +209,8 @@ function AddArmy({ history, armies, getArmies, addArmy }) {
         <div className="right">
           <form onSubmit={handleSubmit}>
             <div className="addContainer">
-              <h1>Add New Soldier</h1>
-              <p>Please fill in this form to join the Army</p>
+              <h1>Edit Exist Soldier</h1>
+              <p>Please Edit Soldier information</p>
               <div id="error_message"></div>
               <label>
                 <b>name :</b>
@@ -161,29 +218,38 @@ function AddArmy({ history, armies, getArmies, addArmy }) {
               <input
                 type="text"
                 placeholder="Enter Name"
-                id="firstname"
+                id="name"
+                defaultValue={name}
                 onChange={handleName}
                 required
               />
-              {!nameValid && <p style={{color: "red"}}>Please enter valid name.</p>}
+              {!nameValid && (
+                <p style={{ color: "red" }}>Please enter valid name.</p>
+              )}
               <label>
                 <b>Rank :</b>
               </label>
-              <select className="rank" id="rank" onChange={handleRank}>
-                <option value="null"></option>
-                {Rank.map(rank => (
-                  <option rank={rank} key={rank}>
-                    {rank}
+              <select
+                className="rank"
+                id="rank"
+                onChange={handleRank}
+                value={rank}
+              >
+                {/* <option selected = {rank} defaultValue ={rank}></option> */}
+                {Rank.map(ranks => (
+                  <option ranks={ranks} key={ranks}>
+                    {ranks}
                   </option>
                 ))}
               </select>
               <br></br>
-              {!rankValid && <p style={{color: "red"}}>Please select a Rank.</p>}
+              {!rankValid && (
+                <p style={{ color: "red" }}>Please select a Rank.</p>
+              )}
               <label>
                 <b>Sex: </b>
               </label>
-              <select className="sex" id="sex" onChange={handleSex}>
-                <option value="null"></option>
+              <select className="sex" id="sex" onChange={handleSex} value={sex}>
                 <option value="F">F</option>
                 <option value="M">M</option>
               </select>
@@ -197,9 +263,14 @@ function AddArmy({ history, armies, getArmies, addArmy }) {
                 name="date"
                 id="date"
                 onChange={handleDate}
+                defaultValue={startDate}
                 required
               />
-              {!startDateValid && <p style={{color: "red"}}>Please enter date as YYYY-MM--DD format.</p>}
+              {!startDateValid && (
+                <p style={{ color: "red" }}>
+                  Please enter date as YYYY-MM--DD format.
+                </p>
+              )}
               <label>Offical Phone :</label>
               <input
                 type="text"
@@ -207,9 +278,14 @@ function AddArmy({ history, armies, getArmies, addArmy }) {
                 name="phone"
                 id="phone"
                 onChange={handlePhone}
+                defaultValue={phoneNumber}
                 required
               />
-              {!phoneValid && <p style={{color: "red"}}>Please enter phoneNumber as xxxx-xxx-xxx format.</p>}
+              {!phoneValid && (
+                <p style={{ color: "red" }}>
+                  Please enter phoneNumber as xxxx-xxx-xxx format.
+                </p>
+              )}
               <label>Email :</label>
               <input
                 type="text"
@@ -217,12 +293,19 @@ function AddArmy({ history, armies, getArmies, addArmy }) {
                 name="email"
                 id="email"
                 onChange={handleEmail}
+                defaultValue={email}
                 required
               />
-              {!emailValid && <p style={{color: "red"}}>Please enter valid email.</p>}
+              {!emailValid && (
+                <p style={{ color: "red" }}>Please enter valid email.</p>
+              )}
               <label>Superior :</label>
-              <select className="rank" id="rank" onChange={handleSuperior}>
-                <option value="null"></option>
+              <select
+                className="superior"
+                id="superior"
+                onChange={handleSuperior}
+              >
+                <option value={superior}></option>
                 {armies.data.map(army => (
                   <option army={army} key={army._id}>
                     {army.name}
@@ -231,7 +314,11 @@ function AddArmy({ history, armies, getArmies, addArmy }) {
               </select>
               <br></br>
 
-              <button type="submit" className="registerbtn" disabled ={!sumbitValid}>
+              <button
+                type="submit"
+                className="registerbtn"
+                //disabled={!sumbitValid}
+              >
                 Register New Soldier
               </button>
               <button className="registerbtn" onClick={() => history.push("/")}>
@@ -246,7 +333,8 @@ function AddArmy({ history, armies, getArmies, addArmy }) {
 }
 const mapStateToProps = state => {
   return {
-    armies: state.armies
+    armies: state.armies,
+    army: state.getSingleArmy.data
   };
 };
 
@@ -255,10 +343,13 @@ const mapDispatchToProps = dispatch => {
     getArmies: condition => {
       dispatch(getArmies(condition));
     },
-    addArmy: payload => {
-      dispatch(addArmy(payload));
+    getSingleArmy: id => {
+      dispatch(getSingleArmy(id));
+    },
+    editArmy: (id, payload) => {
+      dispatch(editArmy(id, payload));
     }
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(AddArmy);
+export default connect(mapStateToProps, mapDispatchToProps)(EditArmy);

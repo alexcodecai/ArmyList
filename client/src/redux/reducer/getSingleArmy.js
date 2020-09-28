@@ -1,19 +1,19 @@
 const initState = { isLoading: false, error: "", data: [] };
 
-const getSuperior = (state = initState, action) => {
+const getSingleArmy = (state = initState, action) => {
   switch (action.type) {
-    case "REQUEST_Armies_START":
+    case "REQUEST_GETSINGLEARMY_START":
       return {
         ...state,
         isLoading: true
       };
-    case "REQUEST_Armies_SUCCESS":
+    case "REQUEST_GETSINGLEARMY_SUCCESS":
       return {
         ...state,
         isLoading: false,
-        data: action.armies
+        data: action.army
       };
-    case "REQUEST_Armies_FAIL":
+    case "REQUEST_GETSINGLEARMY_FAIL":
       return {
         ...state,
         isLoading: false,
@@ -24,4 +24,4 @@ const getSuperior = (state = initState, action) => {
   }
 };
 
-export default getSuperior;
+export default getSingleArmy

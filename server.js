@@ -3,7 +3,8 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const db = require("./config/keys").mongoURI;
 const multer = require("multer");
-
+const defaultURI =
+  "https://1000logos.net/wp-content/uploads/2017/06/U_s_army_logo_PNG3.png";
 const app = express();
 const port = 5000;
 
@@ -49,31 +50,18 @@ mongoose
   .catch(err => console.log("something wrong when connect mongoDB", err));
 
 app.get("/api/army/:search", (req, res) => {
-  //console.log("======", req.query);
+  console.log("======", req.query.subordinate);
   const key = req.query.key;
   const sort = req.query.sort;
+  const superior = req.query.superior;
   const regex = new RegExp("^" + key, "gi");
-  if (key === "" && sort === "") {
-    Army.find({})
-      .then(user => {
-        res.status(200).json(user);
-      })
-      .catch(err => res.status(500).json(err));
-  } else if (sort === "") {
-    serach(res, key);
-  } else if (key === "") {
-    sorting(res, sort);
-  } else {
-    let item = sort.split("_");
-    let param = item[0];
-    let order = () => {
-      if (item[1] === "ascending") {
-        return 1;
-      } else {
-        return -1;
-      }
-    };
-    Army.find({
+  const subordinate = req.query.subordinate;
+  let serach = {};
+  let sortorder = {};
+  let subordinateArray = {};
+
+  if (key) {
+    serach = {
       $or: [
         { name: regex },
         { rank: regex },
@@ -82,21 +70,90 @@ app.get("/api/army/:search", (req, res) => {
         { startDate: regex },
         { superior: regex }
       ]
-    })
-      .sort({ [param]: order() })
-      .then(users => res.status(200).json(users))
-      .catch(err =>
-        res.status(500).json(`something wrong when serach the users`, err)
-      );
+    };
+  } else if (superior) {
+    serach = { name: superior };
   }
+
+  if (subordinate) {
+    const subordinateArr = subordinate.split(",");
+    console.log("subordinateArr", subordinateArr);
+    subordinateArray = {
+      name: { $in: subordinateArr }
+    };
+  }
+
+  if (sort) {
+    let item = sort.split("_");
+    let sortName = item[0];
+    let order = () => {
+      if (item[1] === "ascending") {
+        return 1;
+      } else {
+        return -1;
+      }
+    };
+    sortorder = { [sortName]: order() };
+  }
+  Army.find({ $and: [serach, subordinateArray] })
+    .sort(sortorder)
+    // Army.find( {$and: [{serach,subordinateArray }]}).sort(sortorder)
+    .then(users => res.status(200).json(users))
+    .catch(err =>
+      res.status(500).json(`something went worng when get Armies`, err)
+    );
+
+  // if (superior !== "") {
+  //   Army.find({ name: superior })
+  //     .then(Army => res.status(200).json(Army))
+  //     .catch(err =>
+  //       res.status(500).json(`something wring when get superior`, err)
+  //     );
+  // } else
+  // if (key === "" && sort === "") {
+  //   Army.find({})
+  //     .then(user => {
+  //       res.status(200).json(user);
+  //     })
+  //     .catch(err => res.status(500).json(err));
+  // } else if (sort === "") {
+  //   serach(res, key);
+  // } else if (key === "") {
+  //   sorting(res, sort);
+  // } else {
+  //   let item = sort.split("_");
+  //   let param = item[0];
+  // let order = () => {
+  //   if (item[1] === "ascending") {
+  //     return 1;
+  //   } else {
+  //     return -1;
+  //   }
+  // };
+  //   Army.find({
+  //     $or: [
+  //       { name: regex },
+  //       { rank: regex },
+  //       { phone: regex },
+  //       { sex: regex },
+  //       { startDate: regex },
+  //       { superior: regex }
+  //     ]
+  //   })
+  //     .sort({ [param]: order() })
+  // .then(users => res.status(200).json(users))
+  // .catch(err =>
+  //   res.status(500).json(`something wrong when serach the users`, err)
+  //     );
+  // }
 });
 
-app.get("/api/army/superior/:id", (req, res) => {
+app.get("/api/single/:id", (req, res) => {
   let id = req.params.id;
-  Army.find({ name: id })
-    .then(Army => res.status(200).json(Army))
+  Army.find({ _id: id })
+    .then(army => res.status(200).json(army))
     .catch(err =>
-      res.status(500).json(`something wring when get superior`, err)
+      res.status(500).json(`something wring when serach single soldier`, err)
     );
 });
 
@@ -114,8 +171,11 @@ app.post("/api/army", upload.single("avatar"), (req, res) => {
   console.log("---------", req.body);
   let superior = req.body.superior;
   let subordinate = req.body.name;
+  if (req.file !== undefined) {
+    req.body.avatar = req.file.path;
+  }
   let newData = new Army({
-    avatar: req.file.path,
+    avatar: req.body.avatar ? req.body.avatar : defaultURI,
     name: req.body.name,
     rank: req.body.rank,
     sex: req.body.sex,
@@ -133,134 +193,66 @@ app.post("/api/army", upload.single("avatar"), (req, res) => {
   );
 });
 
-// app.put("/api/army/update/:id", upload.single("avatar"), (req, res)=> {
-//   const id = req.params.id;
-//   const superior = req.body.superior
-//    if (req.file !== undefined){
-//      req.body.avatar = req.file.path
-//    }
-//    Army.findById({_id: id })
-//    .then( army => {
-//      const name = army.name;
-//      const exSup = army.superior;
-//      console.log(name, '+++', exSup)
-//      Army.findOneAndUpdate({name: exSup}, { $pull : { subordinate : name}})
-//      .then(Army.findByIdAndUpdate( {name: superior }, { $push : { subordinate: name}}))
-//    })
-//    Army.updateOne(req.body)
-//    .then(army => res.status(200).json(`updated`))
-//    .catch(err => res.status(500).json(err))
-// })
-
-// app.put("/api/army/update/:id", upload.single("avatar"), (req, res) => {
-//   let exSuperior = req.body.exSuperior;
-//   let subordinate = req.body.name;
-//   let superior = req.body.superior;
-//   if (req.file !== undefined) {
-//     req.body.avatar = req.file.path;
-//   }
-//   console.log("resbody", req.body);
-//   console.log("super", req.file);
-//   console.log("exSuper", exSuperior);
-//   Army.findByIdAndUpdate(req.params.id, req.body)
-//     .then(army => {
-//       console.log("name", exSuperior);
-//       Army.updateOne(
-//         { name: exSuperior },
-//         { $pull: { subordinate: subordinate } }
-//       );
-//     })
-//     .then(army => {
-//       console.log("name2", superior);
-//       Army.updateOne(
-//         { name: superior },
-//         { $push: { subordinate: subordinate } }
-//       );
-//     })
-//     .then(Army => res.json(`updated`))
-//     .catch(err => res.status(500).json(`something wrong when update`, err));
-// });
-
 app.put("/api/army/update/:id", upload.single("avatar"), (req, res) => {
-  if (req.file !== undefined) {
-    req.body.avatar = req.file.path;
-  }
-  Army.findByIdAndUpdate(req.params.id, req.body)
-    .then(user => res.json(user))
-    .catch(err => res.status(500).json(`something wrong when update`, err));
-});
-
-app.put("/api/army", (req, res) => {
+  console.log("fristPut", req.body);
   let exSuperior = req.body.exSuperior;
   let subordinate = req.body.name;
   let superior = req.body.superior;
-  console.log("resbody", res.body);
-  console.log("name", superior);
-  console.log("subordinate", subordinate);
-  console.log("exSuperior", exSuperior);
-  Army.updateOne(
-    { name: exSuperior },
-    { $pull: { subordinate: subordinate } }
-  ).then(
-    Army.updateOne({ name: superior }, { $push: { subordinate: subordinate } })
-      .then(res.status(200).json(`updated!!!`))
-      .catch(err =>
-        res.status(500).json(`something wrong when add and update a solider`)
-      )
-  );
+  let exname = req.body.exname
+  if (req.file !== undefined) {
+    req.body.avatar = req.file.path;
+  }
+  let queries = [
+    Army.findByIdAndUpdate(req.params.id, req.body),
+    Army.updateOne(
+      { name: exSuperior },
+      { $pull: { subordinate: exname } }
+    ),
+    Army.updateOne({ name: superior }, { $addToSet : { subordinate: subordinate } })
+  ];
+  Promise.all(queries)
+    .then(results => {
+      if (!results[0]) {
+        return res.status(500).json(`something wrong when update soldier`);
+      } else if (!results[1]) {
+        return res.status(500).json(`something wrong when remove exsuperior`);
+      } else if (!results[2]) {
+        return res.status(500).json(`something wring when update new superior`);
+      } else {
+        return res
+          .status(200)
+          .json(
+            `updated ${subordinate}, removed ${exSuperior} and added ${superior}`
+          );
+      }
+    })
+    .catch(err =>
+      res.status(500).json(`something wrong when update queries`, err)
+    );
 });
 
-const serach = (res, serachInput) => {
-  const regex = new RegExp("^" + serachInput, "gi");
-  Army.find({
-    $or: [
-      { name: regex },
-      { rank: regex },
-      { phone: regex },
-      { sex: regex },
-      { startDate: regex },
-      { superior: regex }
-    ]
-  })
-    // Army.aggregate([
-    //   {
-    //     $match: {
-    //       $or: [
-    //         { name: serachInput },
-    //         { rank: serachInput },
-    //         { phone: serachInput },
-    //         { sex: serachInput },
-    //         { startDate: serachInput },
-    //         { superior: serachInput }
-    //       ]
-    //     }
-    //   }
-    // ])
-    .then(users => res.status(200).json(users))
+app.delete("/api/army/deleteone/:id", (req, res) => {
+  const id = req.params.id;
+  console.log("reqbody", req.body)
+  const superior = req.body.superior;
+  const name = req.body.name;
+  let queries = [
+    Army.findByIdAndRemove({ name: name}),
+    Army.updateOne({ name: superior }, { $pull: { subordinate: name } })
+  ];
+  Promise.all(queries)
+    .then(results => {
+      if (!results[0]) {
+        return res.status(500).send(`something wrong when remove`);
+      } else if (!results[1]) {
+        return res.status(500).json(`something wrong when update`);
+      } else {
+        return res.status(200).json(" removed and updated");
+      }
+    })
     .catch(err =>
-      res.status(500).json(`something wring when serach the users`, err)
+      res.status(500).json(` something wrong getting querires`, err)
     );
-};
-
-const sorting = (res, sort) => {
-  let item = sort.split("_");
-  let param = item[0];
-  let order = () => {
-    if (item[1] === "ascending") {
-      return 1;
-    } else {
-      return -1;
-    }
-  };
-  Army.aggregate([
-    {
-      $sort: { [param]: order() }
-    }
-  ])
-    .then(users => res.status(200).json(users))
-    .catch(err =>
-      res.status(500).json(`something wring when sorting the users`, err)
-    );
-};
+});
 
 app.listen(port, () => console.log(`server started on port ${port}`));
