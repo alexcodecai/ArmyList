@@ -97,55 +97,10 @@ app.get("/api/army/:search", (req, res) => {
   }
   Army.find({ $and: [serach, subordinateArray] })
     .sort(sortorder)
-    // Army.find( {$and: [{serach,subordinateArray }]}).sort(sortorder)
     .then(users => res.status(200).json(users))
     .catch(err =>
       res.status(500).json(`something went worng when get Armies`, err)
     );
-
-  // if (superior !== "") {
-  //   Army.find({ name: superior })
-  //     .then(Army => res.status(200).json(Army))
-  //     .catch(err =>
-  //       res.status(500).json(`something wring when get superior`, err)
-  //     );
-  // } else
-  // if (key === "" && sort === "") {
-  //   Army.find({})
-  //     .then(user => {
-  //       res.status(200).json(user);
-  //     })
-  //     .catch(err => res.status(500).json(err));
-  // } else if (sort === "") {
-  //   serach(res, key);
-  // } else if (key === "") {
-  //   sorting(res, sort);
-  // } else {
-  //   let item = sort.split("_");
-  //   let param = item[0];
-  // let order = () => {
-  //   if (item[1] === "ascending") {
-  //     return 1;
-  //   } else {
-  //     return -1;
-  //   }
-  // };
-  //   Army.find({
-  //     $or: [
-  //       { name: regex },
-  //       { rank: regex },
-  //       { phone: regex },
-  //       { sex: regex },
-  //       { startDate: regex },
-  //       { superior: regex }
-  //     ]
-  //   })
-  //     .sort({ [param]: order() })
-  // .then(users => res.status(200).json(users))
-  // .catch(err =>
-  //   res.status(500).json(`something wrong when serach the users`, err)
-  //     );
-  // }
 });
 
 app.get("/api/single/:id", (req, res) => {
