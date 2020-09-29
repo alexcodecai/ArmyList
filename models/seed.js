@@ -23,7 +23,7 @@ let Rank = [
 ];
 // let sex = array[Math.ceil(Math.random() * array.length)];
 const seedArmyData = () => {
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 30; i++) {
     const avatar = faker.internet.avatar();
     const name = faker.internet.userName();
     const rank = random_item(Rank);

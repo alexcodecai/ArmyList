@@ -19,13 +19,13 @@ function requestFail(error) {
   };
 }
 
-export function editArmy(id, payload) {
+export function editArmy(id, payload, history) {
   return dispatch => {
     dispatch(requestStart());
     axios
       .put(`/api/army/update/${id}`, payload)
       .then(response => {
-        console.log('responsedata',response.data )
+       history.push('/')
       })
       .catch(error => {
         dispatch(requestFail(error));

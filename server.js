@@ -56,6 +56,7 @@ app.get("/api/army/:search", (req, res) => {
   const superior = req.query.superior;
   const regex = new RegExp("^" + key, "gi");
   const subordinate = req.query.subordinate;
+  const limit = parseInt(req.query.limit);
   let serach = {};
   let sortorder = {};
   let subordinateArray = {};
@@ -97,6 +98,7 @@ app.get("/api/army/:search", (req, res) => {
   }
   Army.find({ $and: [serach, subordinateArray] })
     .sort(sortorder)
+    .limit(limit)
     .then(users => res.status(200).json(users))
     .catch(err =>
       res.status(500).json(`something went worng when get Armies`, err)
@@ -152,18 +154,19 @@ app.put("/api/army/update/:id", upload.single("avatar"), (req, res) => {
   console.log("fristPut", req.body);
   let exSuperior = req.body.exSuperior;
   let subordinate = req.body.name;
-  let superior = req.body.superior;
-  let exname = req.body.exname
+  let superior = req.body.superior
+  let exname = req.body.exname;
   if (req.file !== undefined) {
-    req.body.avatar = req.file.path;
-  }
+    req.body.avatar = "http://localhost:5000/" + req.file.path;
+  } 
+  console.log(req.body)
   let queries = [
     Army.findByIdAndUpdate(req.params.id, req.body),
+    Army.updateOne({ name: exSuperior }, { $pull: { subordinate: exname } }),
     Army.updateOne(
-      { name: exSuperior },
-      { $pull: { subordinate: exname } }
-    ),
-    Army.updateOne({ name: superior }, { $addToSet : { subordinate: subordinate } })
+      { name: superior },
+      { $addToSet: { subordinate: subordinate } }
+    )
   ];
   Promise.all(queries)
     .then(results => {
@@ -188,21 +191,27 @@ app.put("/api/army/update/:id", upload.single("avatar"), (req, res) => {
 
 app.delete("/api/army/deleteone/:id", (req, res) => {
   const id = req.params.id;
-  console.log("reqbody", req.body)
+  console.log("reqbody", req.body);
   const superior = req.body.superior;
   const name = req.body.name;
+  const subordinate = req.body.subordinate;
   let queries = [
-    Army.findByIdAndRemove({ name: name}),
-    Army.updateOne({ name: superior }, { $pull: { subordinate: name } })
+    Army.updateMany({ name: { $in: subordinate } }, { $set: { superior: " " } }),
+    Army.updateOne({ name: superior }, { $pull: { subordinate: name } }),
+
+    Army.findByIdAndRemove({ _id: id })
   ];
+
   Promise.all(queries)
     .then(results => {
       if (!results[0]) {
         return res.status(500).send(`something wrong when remove`);
       } else if (!results[1]) {
         return res.status(500).json(`something wrong when update`);
+      } else if (!results[2]) {
+        return res.status(500).json("did not perform delete superior");
       } else {
-        return res.status(200).json(" removed and updated");
+        return res.status(200).json(`deleted`);
       }
     })
     .catch(err =>

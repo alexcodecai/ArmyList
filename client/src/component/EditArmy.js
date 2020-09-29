@@ -25,24 +25,25 @@ function EditArmy({
   match,
   editArmy
 }) {
-  const [name, setName] = useState("");
-  const [rank, setRank] = useState("");
-  const [sex, setSex] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [email, setEmail] = useState("");
-  const [superior, setSuperior] = useState("");
-  const [image, setImage] = useState("");
-  const [file, setFile] = useState("");
-  const [exSuperior, setExSuperior] = useState("");
-  const [exname, setExname] = useState("");
+  const [name, setName] = useState(null);
+  const [rank, setRank] = useState(null);
+  const [sex, setSex] = useState(null);
+  const [startDate, setStartDate] = useState(null);
+  const [phoneNumber, setPhoneNumber] = useState(null);
+  const [email, setEmail] = useState(null);
+  const [superior, setSuperior] = useState(null);
+  const [image, setImage] = useState(null);
+  const [show, setShow] = useState(null);
+  const [file, setFile] = useState(null);
+  const [exSuperior, setExSuperior] = useState(null);
+  const [exname, setExname] = useState(null);
 
-  const [nameValid, setNameValid] = useState(false);
-  const [rankValid, setRankValid] = useState(false);
-  const [startDateValid, setStartDateValid] = useState(false);
-  const [phoneValid, setPhoneValid] = useState(false);
-  const [emailValid, setEmailValid] = useState(false);
-  const [sumbitValid, setSubmitValid] = useState(false);
+  const [nameValid, setNameValid] = useState(true);
+  const [rankValid, setRankValid] = useState(true);
+  const [startDateValid, setStartDateValid] = useState(true);
+  const [phoneValid, setPhoneValid] = useState(true);
+  const [emailValid, setEmailValid] = useState(true);
+  const [sumbitValid, setSubmitValid] = useState(true);
 
   useEffect(() => {
     getArmies(condition);
@@ -54,8 +55,8 @@ function EditArmy({
 
   useEffect(() => {
     if (army[0] !== undefined) {
-      setExSuperior(army[0].superior)
-      setExname(army[0].name)
+      setExSuperior(army[0].superior);
+      setExname(army[0].name);
       setName(army[0].name);
       setRank(army[0].rank);
       setSex(army[0].sex);
@@ -63,16 +64,10 @@ function EditArmy({
       setPhoneNumber(army[0].phone);
       setEmail(army[0].email);
       setSuperior(army[0].superior);
-      setImage(army[0].avatar);
-      //  if (army[0].avatar.chatAt(0) === 'u'){
-      //    setImage(`http://localhost:5000` + army[0].avatar)
-      //  } else {
-      //    setImage(army[0].avatar)
-      //  }
+      setShow(army[0].avatar);
     }
   }, [army]);
 
-  console.log(army[0]);
   const handleName = e => {
     setName(e.target.value);
     let condition = /^(?=.{1,40}$)[a-zA-Z]+(?:[-'\s][a-zA-Z]+)*$/.test(
@@ -143,22 +138,25 @@ function EditArmy({
   };
 
   const handleUploadPic = e => {
-    setImage(URL.createObjectURL(e.target.files[0]));
+    if (e.target.files[0]) {
+      setImage(URL.createObjectURL(e.target.files[0]));
+    }
+    // console.log("e.tager.file", e.target.files[0]);
+
     setFile(e.target.files[0]);
   };
 
   const handleSubmit = e => {
     e.preventDefault();
-    editArmy(match.params.id, payload);
-    setName("");
-    setRank("");
-    setSex("");
-    setStartDate("");
-    setPhoneNumber("");
-    setEmail("");
-    setSuperior("");
-    setImage("");
-    setExSuperior("")
+    editArmy(match.params.id, payload, history);
+    setName(null);
+    setRank(null);
+    setSex(null);
+    setStartDate(null);
+    setPhoneNumber(null);
+    setEmail(null);
+    setSuperior(null);
+    setExSuperior(null);
   };
 
   const payload = new FormData();
@@ -169,9 +167,13 @@ function EditArmy({
   payload.append("phone", phoneNumber);
   payload.append("email", email);
   payload.append("superior", superior);
-  payload.append("avatar", file);
-  payload.append("exSuperior", exSuperior)
-  payload.append('exname', exname)
+  if (file === null) {
+    payload.append("avatar", show);
+  } else {
+    payload.append("avatar", file);
+  }
+  payload.append("exSuperior", exSuperior);
+  payload.append("exname", exname);
 
   let condition = {
     sort: "",
@@ -179,7 +181,7 @@ function EditArmy({
     superior: "",
     subordinate: []
   };
-  console.log("rank", image);
+  //console.log("rank", image);
   if (army[0] === undefined) {
     return <p>{army.error}</p>;
   }
@@ -201,7 +203,12 @@ function EditArmy({
       </div>
       <div className="body">
         <div className="left">
-          <img src={image} width="700" height="700" alt="headpic" />
+          <img
+            src={image ? image : show}
+            width="700"
+            height="700"
+            alt="headpic"
+          />
           <label>image:</label>
           <input type="file" onChange={handleUploadPic}></input>
         </div>
@@ -304,8 +311,9 @@ function EditArmy({
                 className="superior"
                 id="superior"
                 onChange={handleSuperior}
+                value={superior}
               >
-                <option value={superior}></option>
+                <option value="null"></option>
                 {armies.data.map(army => (
                   <option army={army} key={army._id}>
                     {army.name}
@@ -319,7 +327,7 @@ function EditArmy({
                 className="registerbtn"
                 //disabled={!sumbitValid}
               >
-                Register New Soldier
+                Save Change
               </button>
               <button className="registerbtn" onClick={() => history.push("/")}>
                 Cancel Registering
@@ -346,8 +354,8 @@ const mapDispatchToProps = dispatch => {
     getSingleArmy: id => {
       dispatch(getSingleArmy(id));
     },
-    editArmy: (id, payload) => {
-      dispatch(editArmy(id, payload));
+    editArmy: (id, payload, history) => {
+      dispatch(editArmy(id, payload, history));
     }
   };
 };

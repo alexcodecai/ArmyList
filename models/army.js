@@ -9,7 +9,7 @@ const ArmySchema = new Schema({
   startDate: String,
   phone: String,
   email: String,
-  superior: String,
+  superior: {type:String, default: ' '},
   subordinate: Array
 });
 

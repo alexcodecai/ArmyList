@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { getArmies } from "../redux/action/army";
-import {deleteArmy} from "../redux/action/deleteArmy";
+import { deleteArmy } from "../redux/action/deleteArmy";
 import ArmyEntry from "./ArmyEntry";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import ArrowDropUpIcon from "@material-ui/icons/ArrowDropUp";
+import InfiniteScroll from "react-infinite-scroll-component";
+// import InfiniteScroll from 'react-infinite-scroller';
 import { Link } from "react-router-dom";
 import "./army.css";
 
@@ -22,16 +24,16 @@ function Army({ getArmies, armies, deleteArmy }) {
   const [key, setKey] = useState("");
   const [superior, setSuperior] = useState("");
   const [subordinate, setSubordinate] = useState([]);
-  //const [id, setId] = useState("");
-
-  const currentUsers = armies.data.slice(0, 10);
-  //const currentArmies = armies.data.concat(Array.from({length : 10}))
+  const [limit, setLimit] = useState(15);
+  const [current, setCurrent] = useState(15);
+  const [hasMore, setHasMore] = useState(true);
 
   let condition = {
     sort: sort,
     key: key.trim(),
     superior: superior,
-    subordinate: subordinate
+    subordinate: subordinate,
+    limit: limit
   };
 
   useEffect(() => {
@@ -40,7 +42,14 @@ function Army({ getArmies, armies, deleteArmy }) {
 
   useEffect(() => {
     getSearchHelper(getArmies, 800, condition);
-  }, [sort, key, superior, subordinate]);
+  }, [sort, key, superior, subordinate, limit]);
+
+  const fetchData = () => {
+    setLimit(current + limit);
+    getArmies(condition);
+    setCurrent(current + limit);
+    setHasMore(current < 300);
+  };
 
   const handleSearch = e => {
     setKey(e.target.value);
@@ -57,6 +66,8 @@ function Army({ getArmies, armies, deleteArmy }) {
     setKey("");
     setSort("");
     setSuperior("");
+    setLimit(15);
+    setCurrent(15);
     setSubordinate([]);
     getArmies(condition);
   };
@@ -64,26 +75,21 @@ function Army({ getArmies, armies, deleteArmy }) {
   const showSuperior = (e, id) => {
     e.preventDefault();
     setSuperior(id);
-    console.log("super", superior);
-    console.log("condition", condition);
     getArmies(condition);
   };
 
   const showSubordinate = (e, subordinate) => {
     e.preventDefault();
     setSubordinate(subordinate);
-    console.log("super", subordinate);
-    console.log("condition", condition);
     getArmies(condition);
   };
 
-  const removeArmy =(e, id, sub, boss) => {
+  const removeArmy = (e, id, sup, boss, sub) => {
     e.preventDefault();
-    console.log('------------', id, sub, boss)
-    deleteArmy(condition, id, sub, boss)
-  }
+    deleteArmy(condition, id, sup, boss, sub);
+  };
 
-  console.log("army====", armies);
+
   if (armies.error !== "") {
     return <p>{armies.error}</p>;
   }
@@ -113,82 +119,90 @@ function Army({ getArmies, armies, deleteArmy }) {
           </button>
         </div>
       </div>
-      <table className="content-table">
-        <thead>
-          <tr>
-            <th>Avatar</th>
-            <th style={{ cursor: "pointer", color: "lightblue" }}>
-              Name
-              <ArrowDropUpIcon
-                onClick={e => {
-                  handlesort(e, "name");
-                }}
+      <InfiniteScroll
+        dataLength={current}
+        next={fetchData}
+        hasMore={hasMore}
+        loader={<h4>Loading...</h4>}
+
+      >
+        <table className="content-table">
+          <thead>
+            <tr>
+              <th>Avatar</th>
+              <th style={{ cursor: "pointer", color: "lightblue" }}>
+                Name
+                <ArrowDropUpIcon
+                  onClick={e => {
+                    handlesort(e, "name");
+                  }}
+                />
+                <ArrowDropDownIcon
+                  onClick={e => {
+                    handlesort(e, "name_ascending");
+                  }}
+                />
+              </th>
+              <th style={{ cursor: "pointer", color: "lightblue" }}>
+                Sex
+                <ArrowDropUpIcon
+                  onClick={e => {
+                    handlesort(e, "sex");
+                  }}
+                />
+                <ArrowDropDownIcon
+                  onClick={e => {
+                    handlesort(e, "sex_ascending");
+                  }}
+                />
+              </th>
+              <th style={{ cursor: "pointer", color: "lightblue" }}>
+                Rank
+                <ArrowDropUpIcon
+                  onClick={e => {
+                    handlesort(e, "rank");
+                  }}
+                />
+                <ArrowDropDownIcon
+                  onClick={e => {
+                    handlesort(e, "rank_ascending");
+                  }}
+                />
+              </th>
+              <th style={{ cursor: "pointer", color: "lightblue" }}>
+                Start Date
+                <ArrowDropUpIcon
+                  onClick={e => {
+                    handlesort(e, "startDate");
+                  }}
+                />
+                <ArrowDropDownIcon
+                  onClick={e => {
+                    handlesort(e, "startDate_ascending");
+                  }}
+                />
+              </th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>Superior</th>
+              <th># of D.S</th>
+              <th>Edit</th>
+              <th>Delete</th>
+            </tr>
+          </thead>
+          <tbody>
+            {armies.data.map(army => (
+              <ArmyEntry
+                army={army}
+                key={army._id}
+                showSuperior={showSuperior}
+                showSubordinate={showSubordinate}
+                removeArmy={removeArmy}
               />
-              <ArrowDropDownIcon
-                onClick={e => {
-                  handlesort(e, "name_ascending");
-                }}
-              />
-            </th>
-            <th style={{ cursor: "pointer", color: "lightblue" }}>
-              Sex
-              <ArrowDropUpIcon
-                onClick={e => {
-                  handlesort(e, "sex");
-                }}
-              />
-              <ArrowDropDownIcon
-                onClick={e => {
-                  handlesort(e, "sex_ascending");
-                }}
-              />
-            </th>
-            <th style={{ cursor: "pointer", color: "lightblue" }}>
-              Rank
-              <ArrowDropUpIcon
-                onClick={e => {
-                  handlesort(e, "rank");
-                }}
-              />
-              <ArrowDropDownIcon
-                onClick={e => {
-                  handlesort(e, "rank_ascending");
-                }}
-              />
-            </th>
-            <th style={{ cursor: "pointer", color: "lightblue" }}>
-              Start Date
-              <ArrowDropUpIcon
-                onClick={e => {
-                  handlesort(e, "startDate");
-                }}
-              />
-              <ArrowDropDownIcon
-                onClick={e => {
-                  handlesort(e, "startDate_ascending");
-                }}
-              />
-            </th>
-            <th>Phone</th>
-            <th>Email</th>
-            <th>Superior</th>
-            <th># of D.S</th>
-            <th>Edit</th>
-            <th>Delete</th>
-          </tr>
-        </thead>
-        <tbody>
-          {armies.data.map(army => (
-            <ArmyEntry
-              army={army}
-              key={army._id}
-              showSuperior={showSuperior}
-              showSubordinate={showSubordinate}
-              removeArmy={removeArmy}
-            />
-          ))}
-        </tbody>
-      </table>
+            ))}
+          </tbody>
+        </table>
+      </InfiniteScroll>
     </div>
   );
 }
@@ -204,8 +218,8 @@ const mapDispatchToProps = dispatch => {
     getArmies: condition => {
       dispatch(getArmies(condition));
     },
-    deleteArmy:(condition, id, name, superior) => {
-      dispatch(deleteArmy(condition, id, name, superior))
+    deleteArmy: (condition, id, name, superior) => {
+      dispatch(deleteArmy(condition, id, name, superior));
     }
   };
 };
