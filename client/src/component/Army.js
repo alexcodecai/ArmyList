@@ -6,10 +6,10 @@ import ArmyEntry from "./ArmyEntry";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import ArrowDropUpIcon from "@material-ui/icons/ArrowDropUp";
 import InfiniteScroll from "react-infinite-scroll-component";
-// import InfiniteScroll from 'react-infinite-scroller';
 import { Link } from "react-router-dom";
 import "./army.css";
 
+let logo ="https://cdn11.bigcommerce.com/s-vuyqpjgt91/images/stencil/1280x1280/products/287/667/ArmySealDecal__27803.1553886818.jpg?c=2"
 const debounceCreator = () => {
   let ref;
   return (func, timeout, val) => {
@@ -24,9 +24,13 @@ function Army({ getArmies, armies, deleteArmy }) {
   const [key, setKey] = useState("");
   const [superior, setSuperior] = useState("");
   const [subordinate, setSubordinate] = useState([]);
+
+  const [id, setId] = useState("")
+
   const [limit, setLimit] = useState(15);
   const [current, setCurrent] = useState(15);
   const [hasMore, setHasMore] = useState(true);
+
 
   let condition = {
     sort: sort,
@@ -42,7 +46,7 @@ function Army({ getArmies, armies, deleteArmy }) {
 
   useEffect(() => {
     getSearchHelper(getArmies, 800, condition);
-  }, [sort, key, superior, subordinate, limit]);
+  }, [sort, key, superior, subordinate, limit, id]);
 
   const fetchData = () => {
     setLimit(current + limit);
@@ -56,7 +60,6 @@ function Army({ getArmies, armies, deleteArmy }) {
   };
 
   const handlesort = (e, sort) => {
-    console.log("sorarmiest", armies);
     e.preventDefault();
     setSort(sort);
     getArmies(condition);
@@ -75,27 +78,37 @@ function Army({ getArmies, armies, deleteArmy }) {
   const showSuperior = (e, id) => {
     e.preventDefault();
     setSuperior(id);
+    setSubordinate("");
     getArmies(condition);
   };
 
   const showSubordinate = (e, subordinate) => {
     e.preventDefault();
     setSubordinate(subordinate);
+    setSuperior("");
     getArmies(condition);
   };
 
-  const removeArmy = (e, id, sup, boss, sub) => {
-    e.preventDefault();
-    deleteArmy(condition, id, sup, boss, sub);
+  const removeArmy = (id, superior, subordinate, name) => {
+    console.log("remove function", id, superior, subordinate, name);
+    setId(id);
+    deleteArmy(id, superior, subordinate, name);
+    getArmies(condition);
   };
-
 
   if (armies.error !== "") {
     return <p>{armies.error}</p>;
   }
   return (
-    <div>
-      <h1>Search Users</h1>
+    <div className="main">
+      <h1>Army Registry</h1>
+      <img
+        src={logo}
+        width="210"
+        height="150"
+        alt="avatar"
+      />
+
       <div className="top-content">
         <div className="search-input">
           <form onSubmit={e => e.preventDefault()}>
@@ -111,6 +124,7 @@ function Army({ getArmies, armies, deleteArmy }) {
             <p style={{ color: "red" }}>No such a user exist in our database</p>
           )}
         </div>
+
         <div className="top-right">
           <button onClick={handleReset}>Reset</button>
           <button>
@@ -124,7 +138,6 @@ function Army({ getArmies, armies, deleteArmy }) {
         next={fetchData}
         hasMore={hasMore}
         loader={<h4>Loading...</h4>}
-
       >
         <table className="content-table">
           <thead>
@@ -218,8 +231,8 @@ const mapDispatchToProps = dispatch => {
     getArmies: condition => {
       dispatch(getArmies(condition));
     },
-    deleteArmy: (condition, id, name, superior) => {
-      dispatch(deleteArmy(condition, id, name, superior));
+    deleteArmy: (id, superior, subordinate, name) => {
+      dispatch(deleteArmy(id, superior, subordinate, name));
     }
   };
 };

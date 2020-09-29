@@ -50,18 +50,19 @@ mongoose
   .catch(err => console.log("something wrong when connect mongoDB", err));
 
 app.get("/api/army/:search", (req, res) => {
-  console.log("======", req.query.subordinate);
   const key = req.query.key;
   const sort = req.query.sort;
   const superior = req.query.superior;
   const regex = new RegExp("^" + key, "gi");
   const subordinate = req.query.subordinate;
   const limit = parseInt(req.query.limit);
-  let serach = {};
-  let sortorder = {};
-  let subordinateArray = {};
+  var serach;
+  var sortorder ={};
+  var subordinateArray;
 
-  if (key) {
+  if (!key && !superior) {
+    serach = {};
+  } else if (key) {
     serach = {
       $or: [
         { name: regex },
@@ -72,13 +73,14 @@ app.get("/api/army/:search", (req, res) => {
         { superior: regex }
       ]
     };
-  } else if (superior) {
+  } else  {
     serach = { name: superior };
   }
 
-  if (subordinate) {
+  if (!subordinate) {
+    subordinateArray = {};
+  } else {
     const subordinateArr = subordinate.split(",");
-    console.log("subordinateArr", subordinateArr);
     subordinateArray = {
       name: { $in: subordinateArr }
     };
@@ -154,12 +156,12 @@ app.put("/api/army/update/:id", upload.single("avatar"), (req, res) => {
   console.log("fristPut", req.body);
   let exSuperior = req.body.exSuperior;
   let subordinate = req.body.name;
-  let superior = req.body.superior
+  let superior = req.body.superior;
   let exname = req.body.exname;
   if (req.file !== undefined) {
     req.body.avatar = "http://localhost:5000/" + req.file.path;
-  } 
-  console.log(req.body)
+  }
+  console.log(req.body);
   let queries = [
     Army.findByIdAndUpdate(req.params.id, req.body),
     Army.updateOne({ name: exSuperior }, { $pull: { subordinate: exname } }),
@@ -189,14 +191,16 @@ app.put("/api/army/update/:id", upload.single("avatar"), (req, res) => {
     );
 });
 
-app.delete("/api/army/deleteone/:id", (req, res) => {
+app.put("/api/army/deleteone/:id", (req, res) => {
   const id = req.params.id;
-  console.log("reqbody", req.body);
   const superior = req.body.superior;
   const name = req.body.name;
   const subordinate = req.body.subordinate;
   let queries = [
-    Army.updateMany({ name: { $in: subordinate } }, { $set: { superior: " " } }),
+    Army.updateMany(
+      { name: { $in: subordinate } },
+      { $set: { superior: " " } }
+    ),
     Army.updateOne({ name: superior }, { $pull: { subordinate: name } }),
 
     Army.findByIdAndRemove({ _id: id })

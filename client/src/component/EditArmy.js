@@ -65,7 +65,7 @@ function EditArmy({
       setEmail(army[0].email);
       setSuperior(army[0].superior);
       setShow(army[0].avatar);
-    }
+    } 
   }, [army]);
 
   const handleName = e => {
@@ -313,7 +313,7 @@ function EditArmy({
                 onChange={handleSuperior}
                 value={superior}
               >
-                <option value="null"></option>
+                <option value=" "></option>
                 {armies.data.map(army => (
                   <option army={army} key={army._id}>
                     {army.name}
@@ -330,7 +330,7 @@ function EditArmy({
                 Save Change
               </button>
               <button className="registerbtn" onClick={() => history.push("/")}>
-                Cancel Registering
+                Cancel 
               </button>
             </div>
           </form>

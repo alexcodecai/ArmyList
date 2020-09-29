@@ -26,8 +26,6 @@ export function getArmies(condition) {
   let superior = condition.superior;
   let subordinate = condition.subordinate;
   let limit = condition.limit;
-
-  console.log("conditionsubordinate", subordinate);
   return dispatch => {
     dispatch(requestStart());
     axios

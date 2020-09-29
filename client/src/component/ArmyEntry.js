@@ -5,6 +5,7 @@ import EditIcon from "@material-ui/icons/Edit";
 
 const UserEntry = props => {
   const imageStyle = { width: 50, height: 50 };
+
   return (
     <tr>
       {/* <td>{props.army.avatar}</td> */}
@@ -49,7 +50,7 @@ const UserEntry = props => {
       </td>
       <td
        style = { {cursor : "pointer", color: "black"}}
-       onClick = { e=> props.removeArmy(e, props.army._id, props.army.superior, props.army.subordinate, props.army.name)}
+       onClick = { () => props.removeArmy(props.army._id, props.army.superior, props.army.subordinate, props.army.name)}
       >Delete</td>
     </tr>
   );

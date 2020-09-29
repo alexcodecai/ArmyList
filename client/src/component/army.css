@@ -1,3 +1,4 @@
+
 table { 
 	width: 100%; 
 	border-collapse: collapse; 
@@ -82,4 +83,10 @@ td, th {
   .top-right{
     height: 20px;
     background-color: lightcoral;
+  }
+  
+  .header{
+    position: relative;
+    display: flex;
+    justify-content: space-between;
   }
