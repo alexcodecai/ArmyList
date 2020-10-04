@@ -2,11 +2,12 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const db = require("./config/keys").mongoURI;
+const routes =require('./routes');
 const multer = require("multer");
-const defaultURI =
-  "https://1000logos.net/wp-content/uploads/2017/06/U_s_army_logo_PNG3.png";
 const app = express();
 const port = 5000;
+app.use(routes);
+
 
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
@@ -40,6 +41,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const Army = require("./models/army");
 
 //connect mongodb
+mongoose.Promise = global.Promise;
 mongoose
   .connect(db, {
     useNewUrlParser: true,
@@ -49,178 +51,143 @@ mongoose
   .then(() => console.log("mongoDB connected..."))
   .catch(err => console.log("something wrong when connect mongoDB", err));
 
-app.get("/api/army/:search", (req, res) => {
-  const key = req.query.key;
-  const sort = req.query.sort;
-  const superior = req.query.superior;
-  const regex = new RegExp("^" + key, "gi");
-  const subordinate = req.query.subordinate;
-  const limit = parseInt(req.query.limit);
-  var serach;
-  var sortorder ={};
-  var subordinateArray;
-
-  if (!key && !superior) {
-    serach = {};
-  } else if (key) {
-    serach = {
-      $or: [
-        { name: regex },
-        { rank: regex },
-        { phone: regex },
-        { sex: regex },
-        { startDate: regex },
-        { superior: regex }
-      ]
-    };
-  } else  {
-    serach = { name: superior };
-  }
-
-  if (!subordinate) {
-    subordinateArray = {};
-  } else {
-    const subordinateArr = subordinate.split(",");
-    subordinateArray = {
-      name: { $in: subordinateArr }
-    };
-  }
-
-  if (sort) {
-    let item = sort.split("_");
-    let sortName = item[0];
-    let order = () => {
-      if (item[1] === "ascending") {
-        return 1;
-      } else {
-        return -1;
-      }
-    };
-    sortorder = { [sortName]: order() };
-  }
-  Army.find({ $and: [serach, subordinateArray] })
-    .sort(sortorder)
-    .limit(limit)
-    .then(users => res.status(200).json(users))
-    .catch(err =>
-      res.status(500).json(`something went worng when get Armies`, err)
-    );
-});
-
-app.get("/api/single/:id", (req, res) => {
-  let id = req.params.id;
-  Army.find({ _id: id })
-    .then(army => res.status(200).json(army))
-    .catch(err =>
-      res.status(500).json(`something wring when serach single soldier`, err)
-    );
-});
-
-app.get("/api/army/subordinate/:id", (req, res) => {
-  let id = req.params.id;
-  Army.find({ name: id })
-    .then(Army => res.status(200).json(Army))
-    .catch(err =>
-      res.status(500).json(`something wring when get superior`, err)
-    );
-});
-
-app.post("/api/army", upload.single("avatar"), (req, res) => {
-  console.log(req.file);
-  console.log("---------", req.body);
-  let superior = req.body.superior;
-  let subordinate = req.body.name;
-  if (req.file !== undefined) {
-    req.body.avatar = req.file.path;
-  }
-  let newData = new Army({
-    avatar: req.body.avatar ? req.body.avatar : defaultURI,
-    name: req.body.name,
-    rank: req.body.rank,
-    sex: req.body.sex,
-    startDate: req.body.startDate,
-    phone: req.body.phone,
-    email: req.body.email,
-    superior: req.body.superior
-  });
-  newData.save().then(
-    Army.updateOne({ name: superior }, { $push: { subordinate: subordinate } })
-      .then(res.status(200).json(`New data ${newData} inserted and update`))
-      .catch(err =>
-        res.status(500).json(`something wrong when add and update a solider`)
-      )
-  );
-});
-
 app.put("/api/army/update/:id", upload.single("avatar"), (req, res) => {
-  console.log("fristPut", req.body);
-  let exSuperior = req.body.exSuperior;
+  let id = req.params.id
+  let exSuperiorID = req.body.exSuperiorID;
+  let soldierID = req.body.soldierID;
   let subordinate = req.body.name;
-  let superior = req.body.superior;
+  let superiorID = req.body.superiorID;
   let exname = req.body.exname;
   if (req.file !== undefined) {
     req.body.avatar = "http://localhost:5000/" + req.file.path;
   }
   console.log(req.body);
   let queries = [
-    Army.findByIdAndUpdate(req.params.id, req.body),
-    Army.updateOne({ name: exSuperior }, { $pull: { subordinate: exname } }),
+    Army.findByIdAndUpdate(id, req.body),
     Army.updateOne(
-      { name: superior },
-      { $addToSet: { subordinate: subordinate } }
+      { _id: exSuperiorID },
+      { $pull: { subordinate: soldierID } }
+    ),
+    Army.updateOne(
+      { _id: superiorID },
+      { $addToSet: { subordinate: soldierID } }
     )
   ];
   Promise.all(queries)
-    .then(results => {
-      if (!results[0]) {
-        return res.status(500).json(`something wrong when update soldier`);
-      } else if (!results[1]) {
-        return res.status(500).json(`something wrong when remove exsuperior`);
-      } else if (!results[2]) {
-        return res.status(500).json(`something wring when update new superior`);
-      } else {
-        return res
-          .status(200)
-          .json(
-            `updated ${subordinate}, removed ${exSuperior} and added ${superior}`
-          );
-      }
+    .then(result => {
+      return res.status(200).json('updated')
     })
+    // .then(results => {
+    //   if (!results[0]) {
+    //     return res.status(500).json(`something wrong when update soldier`);
+    //   } else if (!results[1]) {
+    //     return res.status(500).json(`something wrong when remove exsuperior`);
+    //   } else if (!results[2]) {
+    //     return res.status(500).json(`something wring when update new superior`);
+    //   } else {
+    //     return res
+    //       .status(200)
+    //       .json(
+    //         `updated ${subordinate}, removed ${exSuperior} and added ${superior}`
+    //       );
+    //   }
+    // })
     .catch(err =>
-      res.status(500).json(`something wrong when update queries`, err)
+      res.status(500).json(err)
     );
 });
 
-app.put("/api/army/deleteone/:id", (req, res) => {
-  const id = req.params.id;
-  const superior = req.body.superior;
-  const name = req.body.name;
-  const subordinate = req.body.subordinate;
-  let queries = [
-    Army.updateMany(
-      { name: { $in: subordinate } },
-      { $set: { superior: " " } }
-    ),
-    Army.updateOne({ name: superior }, { $pull: { subordinate: name } }),
+// app.put("/api/army/deleteone/:id", (req, res) => {
+//   console.log("req.body", req.body);
+//   console.log("iddddddd", req.body.superior);
+//   console.log("subbbbbbb", req.body.subordinate);
+//   const soldierID = req.params.id;
+//   const superior = req.body.superior;
+//   const subordinate = req.body.subordinate;
+//   Army.findByIdAndRemove({ _id: soldierID })
+//     .then(() => {
+//       if (superior && subordinate.length > 0) {
+//         console.log(`case 1 enter`);
+//         let queries = [
+//           Army.updateMany(
+//             { superiorID: soldierID },
+//             { $set: { superiorID: superior._id } }
+//           ),
+//           Army.updateOne(
+//             { _id: superior._id },
+//             { $pull: { subordinate: soldierID } }
+//           ),
+//           Army.updateOne(
+//             { _id: superior._id },
+//             { $push: { subordinate: { $each: subordinate } } }
+//           )
+//         ];
+//         Promise.all(queries)
+//           .then(results => {
+//             return res.status(200).json("did all queries in remove");
+//           })
+//           .catch(err => {
+//             res
+//               .status(500)
+//               .json("failed to process all queries for remove", err);
+//           });
+//       } else if (subordinate.length > 0) {
+//         console.log(`case 2 only subordinate enter`);
+//         Army.updateMany({ superiorID: soldierID }, { $unset: { superiorID: 1, superior: 1 } })
+//           .then(result => {
+//             return res.status(200).json("update case 2");
+//           })
+//           .catch(err => {
+//             res.status(500).json("failed to update case 2");
+//           });
+//       } else if (superior) {
+//         Army.updateOne({_id: superior._id}, {$pull : {subordinate : soldierID}})
+//         .then(result => {
+//           return res.status.json("update only superior existed")
+//         })
+//         .catch(err => {
+//           res.status(500).json('failed to update when only superior')
+//         })
+//       }
+//        else {
+//          res.status(200).json('soldier has been removed')
+//        }
+//     })
+//     .catch(err => {
+//       res.status(500).json(err);
+//     });
+// });
 
-    Army.findByIdAndRemove({ _id: id })
-  ];
+// app.put("/api/army/deleteone/:id", (req, res) => {
+//   const id = req.params.id;
+//   const superior = req.body.superior;
+//   const name = req.body.name;
+//   const subordinate = req.body.subordinate;
+//   let queries = [
+//     Army.updateMany(
+//       { name: { $in: subordinate } },
+//       { $set: { superior: " " } }
+//     ),
+//     Army.updateOne({ name: superior }, { $pull: { subordinate: name } }),
 
-  Promise.all(queries)
-    .then(results => {
-      if (!results[0]) {
-        return res.status(500).send(`something wrong when remove`);
-      } else if (!results[1]) {
-        return res.status(500).json(`something wrong when update`);
-      } else if (!results[2]) {
-        return res.status(500).json("did not perform delete superior");
-      } else {
-        return res.status(200).json(`deleted`);
-      }
-    })
-    .catch(err =>
-      res.status(500).json(` something wrong getting querires`, err)
-    );
-});
+//     Army.findByIdAndRemove({ _id: id })
+//   ];
+
+//   Promise.all(queries)
+//     .then(results => {
+//       if (!results[0]) {
+//         return res.status(500).send(`something wrong when remove`);
+//       } else if (!results[1]) {
+//         return res.status(500).json(`something wrong when update`);
+//       } else if (!results[2]) {
+//         return res.status(500).json("did not perform delete superior");
+//       } else {
+//         return res.status(200).json(`deleted`);
+//       }
+//     })
+//     .catch(err =>
+//       res.status(500).json(` something wrong getting querires`, err)
+//     );
+// });
 
 app.listen(port, () => console.log(`server started on port ${port}`));

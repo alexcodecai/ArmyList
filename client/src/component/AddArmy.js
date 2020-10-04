@@ -23,6 +23,7 @@ function AddArmy({ history, armies, getArmies, addArmy }) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [superior, setSuperior] = useState("");
+  const [superiorID, setSuperiorID] = useState("")
   const [image, setImage] = useState("https://1000logos.net/wp-content/uploads/2017/06/U_s_army_logo_PNG3.png");
   const [file, setFile] =useState("");
 
@@ -81,7 +82,13 @@ function AddArmy({ history, armies, getArmies, addArmy }) {
   };
 
   const handleSuperior = e => {
-    setSuperior(e.target.value);
+    console.log("e.target", e.target.value)
+    let value = e.target.value.split('+')
+    console.log('e.target.name', value)
+    setSuperiorID(value[0]);
+    setSuperior(value[1]);
+    console.log("superiro", superior)
+    console.log('after', superiorID)
   };
 
   const handleUploadPic = e => {
@@ -91,6 +98,7 @@ function AddArmy({ history, armies, getArmies, addArmy }) {
 
   const handleSubmit = e => {
     e.preventDefault();
+    console.log(payload)
     addArmy(payload);
     setName("");
     setRank("");
@@ -99,6 +107,7 @@ function AddArmy({ history, armies, getArmies, addArmy }) {
     setEmail("");
     setPhoneNumber("");
     setSuperior("");
+    setSuperiorID("");
     history.push("/");
   };
 
@@ -111,6 +120,7 @@ function AddArmy({ history, armies, getArmies, addArmy }) {
   payload.append("phone", phoneNumber)
   payload.append("email", email)
   payload.append("superior", superior)
+  payload.append("superiorID", superiorID)
   payload.append("avatar", file)
 
   let condition = {
@@ -119,8 +129,8 @@ function AddArmy({ history, armies, getArmies, addArmy }) {
     superior: "",
     subordinate:[]
 };
-  console.log("image", image);
-  console.log("name", condition);
+  // console.log("image", image);
+  // console.log("name", condition);
 
   return (
     <div className="addArmy">
@@ -222,9 +232,9 @@ function AddArmy({ history, armies, getArmies, addArmy }) {
               {!emailValid && <p style={{color: "red"}}>Please enter valid email.</p>}
               <label>Superior :</label>
               <select className="rank" id="rank" onChange={handleSuperior}>
-                <option value="null"></option>
+                <option value = 'null'></option>
                 {armies.data.map(army => (
-                  <option army={army} key={army._id}>
+                  <option army={army} key={army._id} value = {army._id + '+' + army.name} >
                     {army.name}
                   </option>
                 ))}

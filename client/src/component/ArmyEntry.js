@@ -5,7 +5,10 @@ import EditIcon from "@material-ui/icons/Edit";
 
 const UserEntry = props => {
   const imageStyle = { width: 50, height: 50 };
-
+  //console.log('entry', props.army)
+  // if (props.army.superiorID === undefined) {
+  //   return <p>loading....</p>;
+  // }
   return (
     <tr>
       {/* <td>{props.army.avatar}</td> */}
@@ -20,23 +23,23 @@ const UserEntry = props => {
       <td><a href={`mailto:${props.army.email}`}>{props.army.email}</a></td>
       <td
         style={
-          props.army.superior === ' ' ? null : { cursor: "pointer", color: "grey" }
+          props.army.superiorID === undefined ? null : { cursor: "pointer", color: "grey" }
         }
         onClick={
-          props.army.superior === ' '
+          props.army.superiorID === undefined
             ? null
-            : e => props.showSuperior(e, props.army.superior)
+            : e => props.showSuperior(e, props.army.superiorID._id)
         }
       >
-        {props.army.superior}
+        {props.army.superiorID ? props.army.superiorID.name : null}
       </td>
       <td
         style={
-          props.army.subordinate ? { cursor: "pointer", color: "grey" } : null
+          props.army.subordinate.length > 0? { cursor: "pointer", color: "grey" } : null
         }
         onClick={
-          props.army.subordinate 
-            ? e => props.showSubordinate(e, props.army.subordinate)
+          props.army.subordinate.length > 0
+            ? e => props.showSubordinate(e, props.army._id)
             : null
         }
       >
@@ -50,7 +53,7 @@ const UserEntry = props => {
       </td>
       <td
        style = { {cursor : "pointer", color: "black"}}
-       onClick = { () => props.removeArmy(props.army._id, props.army.superior, props.army.subordinate, props.army.name)}
+       onClick = { () => props.removeArmy(props.army._id)}
       >Delete</td>
     </tr>
   );

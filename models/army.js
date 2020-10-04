@@ -9,8 +9,9 @@ const ArmySchema = new Schema({
   startDate: String,
   phone: String,
   email: String,
-  superior: {type:String, default: ' '},
+  superiorID: {type: mongoose.Schema.Types.ObjectId, ref: "Army"},
+  superior: {type :String, default: " "},
   subordinate: Array
 });
 
-module.exports = Army = mongoose.model("army", ArmySchema);
+module.exports = Army = mongoose.model("Army", ArmySchema);

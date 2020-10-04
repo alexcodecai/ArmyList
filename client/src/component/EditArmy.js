@@ -4,6 +4,7 @@ import { getArmies } from "../redux/action/army";
 import { getSingleArmy } from "../redux/action/getSingleArmy";
 import { connect } from "react-redux";
 import { editArmy } from "../redux/action/editArmy";
+import axios from "axios";
 
 const Rank = [
   "General",
@@ -35,8 +36,10 @@ function EditArmy({
   const [image, setImage] = useState(null);
   const [show, setShow] = useState(null);
   const [file, setFile] = useState(null);
-  const [exSuperior, setExSuperior] = useState(null);
-  const [exname, setExname] = useState(null);
+  const [exSuperiorID, setExSuperiorID] = useState(null);
+  const [superiorID, setSuperiorID] = useState(null);
+  const [soldierID, setsoldierID] = useState(null);
+  const [supcombo, setSupcombo] = useState(null);
 
   const [nameValid, setNameValid] = useState(true);
   const [rankValid, setRankValid] = useState(true);
@@ -46,27 +49,66 @@ function EditArmy({
   const [sumbitValid, setSubmitValid] = useState(true);
 
   useEffect(() => {
-    getArmies(condition);
-  }, []);
+    console.log("is", match.params.id);
+    const fecthData = async () => {
+      const request = await axios(`/api/single/${match.params.id}`);
+      const army = request.data;
+      console.log("requset!!!!!!!!!!!", army);
+
+      if (army.superiorID === undefined) {
+        setExSuperiorID("");
+      } else {
+        setExSuperiorID(army.superiorID._id);
+      }
+      setsoldierID(army._id);
+      setName(army.name);
+      setRank(army.rank);
+      setSex(army.sex);
+      setStartDate(army.startDate);
+      setPhoneNumber(army.phone);
+      setEmail(army.email);
+      setSuperior(army.superior);
+      setSuperiorID(army.superiorID);
+      setShow(army.avatar);
+    };
+    fecthData();
+  }, [match.params.id]);
 
   useEffect(() => {
-    getSingleArmy(match.params.id);
+    async function getall() {
+      await getArmies(condition);
+      console.log("ffffff", condition);
+    }
+    getall();
   }, []);
 
-  useEffect(() => {
-    if (army[0] !== undefined) {
-      setExSuperior(army[0].superior);
-      setExname(army[0].name);
-      setName(army[0].name);
-      setRank(army[0].rank);
-      setSex(army[0].sex);
-      setStartDate(army[0].startDate);
-      setPhoneNumber(army[0].phone);
-      setEmail(army[0].email);
-      setSuperior(army[0].superior);
-      setShow(army[0].avatar);
-    } 
-  }, [army]);
+  // useEffect(() => {
+  //  async function setInitation() {
+  //   await setinit()
+  //   console.log('123')
+  //  }
+  //  setInitation();
+  // }, []);
+
+  // const setinit = () => {
+  //   if (army !== undefined) {
+  //     if (army.superiorID === undefined) {
+  //       setExSuperiorID("");
+  //     } else {
+  //       setExSuperiorID(army.superiorID._id);
+  //     }
+  //     setsoldierID(army._id);
+  //     setName(army.name);
+  //     setRank(army.rank);
+  //     setSex(army.sex);
+  //     setStartDate(army.startDate);
+  //     setPhoneNumber(army.phone);
+  //     setEmail(army.email);
+  //     setSuperior(army.superior);
+  //     setSuperiorID(army.superiorID);
+  //     setShow(army.avatar);
+  //   }
+  // };
 
   const handleName = e => {
     setName(e.target.value);
@@ -134,7 +176,13 @@ function EditArmy({
   };
 
   const handleSuperior = e => {
-    setSuperior(e.target.value);
+    // console.log("e.target", e.target.value);
+    let value = e.target.value.split("+");
+    // console.log("e.target.name", value);
+    setSuperiorID(value[0]);
+    setSuperior(value[1]);
+    // console.log("superiro", superior);
+    // console.log("after", superiorID);
   };
 
   const handleUploadPic = e => {
@@ -149,15 +197,22 @@ function EditArmy({
   const handleSubmit = e => {
     e.preventDefault();
     editArmy(match.params.id, payload, history);
-    setName(null);
-    setRank(null);
-    setSex(null);
-    setStartDate(null);
-    setPhoneNumber(null);
-    setEmail(null);
-    setSuperior(null);
-    setExSuperior(null);
+    setName("");
+    setRank("");
+    setSex("");
+    setStartDate("");
+    setPhoneNumber("");
+    setEmail("");
+    setSuperior("");
+    setSuperiorID("");
+    setExSuperiorID("");
+    history.push("/");
   };
+
+  // const handleCancel = e => {
+  //   e.preventDefault();
+  //   history.push("/");
+  // };
 
   const payload = new FormData();
   payload.append("name", name);
@@ -172,177 +227,201 @@ function EditArmy({
   } else {
     payload.append("avatar", file);
   }
-  payload.append("exSuperior", exSuperior);
-  payload.append("exname", exname);
+  payload.append("exSuperiorID", exSuperiorID);
+  payload.append("soldierID", soldierID);
+  payload.append("superiorID", superiorID);
 
   let condition = {
     sort: "",
     key: "",
-    superior: "",
-    subordinate: []
+    superiorID: "",
+    subordinate: [],
+    limit: ""
   };
-  //console.log("rank", image);
-  if (army[0] === undefined) {
-    return <p>{army.error}</p>;
-  }
-
-  return (
-    <div className="addArmy">
-      <div className="topfield">
-        <div className="topleft">
-          <img
-            src="https://images-na.ssl-images-amazon.com/images/I/71%2BMrzDspoL._AC_SL1001_.jpg"
-            width="200"
-            height="200"
-            alt="avatar"
-          />
-          <div className="header">
-            <h1>Edit Soldier</h1>
+  //console.log("rank", army[0]);
+  if (name === undefined) {
+    return <p>loading</p>;
+  } else
+    return (
+      <div className="addArmy">
+        <div className="topfield">
+          <div className="topleft">
+            <img
+              src="https://images-na.ssl-images-amazon.com/images/I/71%2BMrzDspoL._AC_SL1001_.jpg"
+              width="200"
+              height="200"
+              alt="avatar"
+            />
+            <div className="header">
+              <h1>Edit Soldier</h1>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="body">
-        <div className="left">
-          <img
-            src={image ? image : show}
-            width="700"
-            height="700"
-            alt="headpic"
-          />
-          <label>image:</label>
-          <input type="file" onChange={handleUploadPic}></input>
-        </div>
+        <div className="body">
+          <div className="left">
+            <img
+              src={image ? image : show}
+              width="700"
+              height="700"
+              alt="headpic"
+            />
+            <label>image:</label>
+            <input type="file" onChange={handleUploadPic}></input>
+          </div>
 
-        <div className="right">
-          <form onSubmit={handleSubmit}>
-            <div className="addContainer">
-              <h1>Edit Exist Soldier</h1>
-              <p>Please Edit Soldier information</p>
-              <div id="error_message"></div>
-              <label>
-                <b>name :</b>
-              </label>
-              <input
-                type="text"
-                placeholder="Enter Name"
-                id="name"
-                defaultValue={name}
-                onChange={handleName}
-                required
-              />
-              {!nameValid && (
-                <p style={{ color: "red" }}>Please enter valid name.</p>
-              )}
-              <label>
-                <b>Rank :</b>
-              </label>
-              <select
-                className="rank"
-                id="rank"
-                onChange={handleRank}
-                value={rank}
-              >
-                {/* <option selected = {rank} defaultValue ={rank}></option> */}
-                {Rank.map(ranks => (
-                  <option ranks={ranks} key={ranks}>
-                    {ranks}
-                  </option>
-                ))}
-              </select>
-              <br></br>
-              {!rankValid && (
-                <p style={{ color: "red" }}>Please select a Rank.</p>
-              )}
-              <label>
-                <b>Sex: </b>
-              </label>
-              <select className="sex" id="sex" onChange={handleSex} value={sex}>
-                <option value="F">F</option>
-                <option value="M">M</option>
-              </select>
-              <br></br>
-              <label>
-                <b>Start Date :</b>
-              </label>
-              <input
-                type="text"
-                placeholder="Enter Date "
-                name="date"
-                id="date"
-                onChange={handleDate}
-                defaultValue={startDate}
-                required
-              />
-              {!startDateValid && (
-                <p style={{ color: "red" }}>
-                  Please enter date as YYYY-MM--DD format.
-                </p>
-              )}
-              <label>Offical Phone :</label>
-              <input
-                type="text"
-                placeholder="Enter Phome Number "
-                name="phone"
-                id="phone"
-                onChange={handlePhone}
-                defaultValue={phoneNumber}
-                required
-              />
-              {!phoneValid && (
-                <p style={{ color: "red" }}>
-                  Please enter phoneNumber as xxxx-xxx-xxx format.
-                </p>
-              )}
-              <label>Email :</label>
-              <input
-                type="text"
-                placeholder="Enter Email "
-                name="email"
-                id="email"
-                onChange={handleEmail}
-                defaultValue={email}
-                required
-              />
-              {!emailValid && (
-                <p style={{ color: "red" }}>Please enter valid email.</p>
-              )}
-              <label>Superior :</label>
+          <div className="right">
+            <form onSubmit={handleSubmit}>
+              <div className="addContainer">
+                <h1>Edit Exist Soldier</h1>
+                <p>Please Edit Soldier information</p>
+                <div id="error_message"></div>
+                <label>
+                  <b>name :</b>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter Name"
+                  id="name"
+                  defaultValue={name}
+                  onChange={handleName}
+                  required
+                />
+                {!nameValid && (
+                  <p style={{ color: "red" }}>Please enter valid name.</p>
+                )}
+                <label>
+                  <b>Rank :</b>
+                </label>
+                <select
+                  className="rank"
+                  id="rank"
+                  onChange={handleRank}
+                  value={rank}
+                >
+                  {/* <option selected = {rank} defaultValue ={rank}></option> */}
+                  {Rank.map(ranks => (
+                    <option ranks={ranks} key={ranks}>
+                      {ranks}
+                    </option>
+                  ))}
+                </select>
+                <br></br>
+                {!rankValid && (
+                  <p style={{ color: "red" }}>Please select a Rank.</p>
+                )}
+                <label>
+                  <b>Sex: </b>
+                </label>
+                <select
+                  className="sex"
+                  id="sex"
+                  onChange={handleSex}
+                  value={sex}
+                >
+                  <option value="F">F</option>
+                  <option value="M">M</option>
+                </select>
+                <br></br>
+                <label>
+                  <b>Start Date :</b>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter Date "
+                  name="date"
+                  id="date"
+                  onChange={handleDate}
+                  defaultValue={startDate}
+                  required
+                />
+                {!startDateValid && (
+                  <p style={{ color: "red" }}>
+                    Please enter date as YYYY-MM--DD format.
+                  </p>
+                )}
+                <label>Offical Phone :</label>
+                <input
+                  type="text"
+                  placeholder="Enter Phome Number "
+                  name="phone"
+                  id="phone"
+                  onChange={handlePhone}
+                  defaultValue={phoneNumber}
+                  required
+                />
+                {!phoneValid && (
+                  <p style={{ color: "red" }}>
+                    Please enter phoneNumber as xxxx-xxx-xxx format.
+                  </p>
+                )}
+                <label>Email :</label>
+                <input
+                  type="text"
+                  placeholder="Enter Email "
+                  name="email"
+                  id="email"
+                  onChange={handleEmail}
+                  defaultValue={email}
+                  required
+                />
+                {!emailValid && (
+                  <p style={{ color: "red" }}>Please enter valid email.</p>
+                )}
+                <label>Superior : {superior}</label>
+                <select
+                  className="superior"
+                  id="superior"
+                  onChange={handleSuperior}
+                >
+                  <option value=" "></option>
+                  {armies.data.map(army => (
+                    <option
+                      army={army}
+                      key={army._id}
+                      value={army._id + "+" + army.name}
+                    >
+                      {army.name}
+                    </option>
+                  ))}
+                </select>
+                <br></br>
+                {/* <label>Superior :</label>
               <select
                 className="superior"
                 id="superior"
                 onChange={handleSuperior}
                 value={superior}
               >
-                <option value=" "></option>
+                <option value={superior}></option>
                 {armies.data.map(army => (
-                  <option army={army} key={army._id}>
+                  <option army={army} key={army._id} value = {army._id}>
                     {army.name}
                   </option>
                 ))}
               </select>
-              <br></br>
+              <br></br> */}
 
-              <button
-                type="submit"
-                className="registerbtn"
-                //disabled={!sumbitValid}
-              >
-                Save Change
-              </button>
-              <button className="registerbtn" onClick={() => history.push("/")}>
-                Cancel 
-              </button>
-            </div>
-          </form>
+                <button
+                  type="submit"
+                  className="registerbtn"
+                  //disabled={!sumbitValid}
+                >
+                  Save Change
+                </button>
+                <button className="cancel" onClick={() => history.push("/")}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
 }
 const mapStateToProps = state => {
   return {
     armies: state.armies,
-    army: state.getSingleArmy.data
+    army: state.getSingleArmy.data[0]
   };
 };
 

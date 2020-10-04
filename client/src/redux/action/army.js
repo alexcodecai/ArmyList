@@ -23,20 +23,20 @@ function requestFail(error) {
 export function getArmies(condition) {
   let sort = condition.sort;
   let key = condition.key;
-  let superior = condition.superior;
+  let superiorID = condition.superiorID;
   let subordinate = condition.subordinate;
   let limit = condition.limit;
   return dispatch => {
     dispatch(requestStart());
     axios
       .get(
-        `/api/army/search?key=${key}&sort=${sort}&superior=${superior}&subordinate=${subordinate}&limit=${limit}`
+        `/api/army/search?key=${key}&sort=${sort}&superiorID=${superiorID}&subordinate=${subordinate}&limit=${limit}`
       )
       .then(response => {
         dispatch(requestSuccess(response.data));
       })
-      .catch(error => {
-        dispatch(requestFail(error));
+      .catch(err => {
+        dispatch(requestFail(err));
       });
   };
 }

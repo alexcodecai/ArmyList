@@ -19,29 +19,12 @@ function requestFail(error) {
   };
 }
 
-export function deleteArmy(id, superior, subordinate, name) {
-  // let sort = condition.sort;
-  // let key = condition.key;
-  // let superior = condition.superior;
-  // let subordinate = condition.subordinate;
-  // let removeSubordinate = name
-  console.log('redux', id,"superior", superior,"subordnate",  subordinate,"name", name)
-  let payload = {
-    superior: superior,
-    subordinate: subordinate,
-    name: name
-  }
+export function deleteArmy(id) {
+ 
   return dispatch => {
     dispatch(requestStart());
-    console.log('payload', payload)
     axios
-      .put(`/api/army/deleteone/${id}`, payload)
-      // .then(
-      //   axios.get(`/api/army/search?key=${key}&sort=${sort}&superior=${superior}&subordinate=${subordinate}`)
-      //   .then((response) => {
-      //     dispatch(requestSuccess(response.data))
-      //   })
-      // )
+      .put(`/api/army/deleteone/${id}`)
       .catch(error => {
         dispatch(requestFail(error));
       });

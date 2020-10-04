@@ -22,7 +22,7 @@ const getSearchHelper = debounceCreator();
 function Army({ getArmies, armies, deleteArmy }) {
   const [sort, setSort] = useState("");
   const [key, setKey] = useState("");
-  const [superior, setSuperior] = useState("");
+  const [superiorID, setSuperiorID] = useState("");
   const [subordinate, setSubordinate] = useState([]);
 
   const [id, setId] = useState("")
@@ -35,7 +35,7 @@ function Army({ getArmies, armies, deleteArmy }) {
   let condition = {
     sort: sort,
     key: key.trim(),
-    superior: superior,
+    superiorID: superiorID,
     subordinate: subordinate,
     limit: limit
   };
@@ -46,10 +46,10 @@ function Army({ getArmies, armies, deleteArmy }) {
 
   useEffect(() => {
     getSearchHelper(getArmies, 800, condition);
-  }, [sort, key, superior, subordinate, limit, id]);
+  }, [sort, key, superiorID, subordinate, limit, id]);
 
   const fetchData = () => {
-    setLimit(current + limit);
+    setLimit(limit + 15);
     getArmies(condition);
     setCurrent(current + limit);
     setHasMore(current < 300);
@@ -68,7 +68,7 @@ function Army({ getArmies, armies, deleteArmy }) {
   const handleReset = e => {
     setKey("");
     setSort("");
-    setSuperior("");
+    setSuperiorID("");
     setLimit(15);
     setCurrent(15);
     setSubordinate([]);
@@ -77,28 +77,31 @@ function Army({ getArmies, armies, deleteArmy }) {
 
   const showSuperior = (e, id) => {
     e.preventDefault();
-    setSuperior(id);
+    //console.log('id' , id)
+    setSuperiorID(id);
     setSubordinate("");
     getArmies(condition);
   };
 
   const showSubordinate = (e, subordinate) => {
     e.preventDefault();
+    console.log('id', subordinate)
     setSubordinate(subordinate);
-    setSuperior("");
+    setSuperiorID("");
     getArmies(condition);
   };
 
-  const removeArmy = (id, superior, subordinate, name) => {
-    console.log("remove function", id, superior, subordinate, name);
+  const removeArmy = (id) => {
     setId(id);
-    deleteArmy(id, superior, subordinate, name);
-    getArmies(condition);
+    deleteArmy(id);
+   // getArmies(condition);
   };
 
-  if (armies.error !== "") {
-    return <p>{armies.error}</p>;
-  }
+  //console.log('``````````````````````', armies)
+
+  // if (armies.error !== "") {
+  //   return (<p>loading</p>);
+  // }
   return (
     <div className="main">
       <h1>Army Registry</h1>
@@ -211,6 +214,7 @@ function Army({ getArmies, armies, deleteArmy }) {
                 showSuperior={showSuperior}
                 showSubordinate={showSubordinate}
                 removeArmy={removeArmy}
+                //superior = {army.superiorID.name}
               />
             ))}
           </tbody>
@@ -231,8 +235,8 @@ const mapDispatchToProps = dispatch => {
     getArmies: condition => {
       dispatch(getArmies(condition));
     },
-    deleteArmy: (id, superior, subordinate, name) => {
-      dispatch(deleteArmy(id, superior, subordinate, name));
+    deleteArmy: (id) => {
+      dispatch(deleteArmy(id));
     }
   };
 };
