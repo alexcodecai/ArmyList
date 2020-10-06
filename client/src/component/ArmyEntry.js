@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import EditIcon from "@material-ui/icons/Edit";
-
+import HighlightOffIcon from "@material-ui/icons/HighlightOff";
 
 const UserEntry = props => {
   const imageStyle = { width: 50, height: 50 };
@@ -51,10 +51,13 @@ const UserEntry = props => {
           edit
         </Link>
       </td>
-      <td
-       style = { {cursor : "pointer", color: "black"}}
-       onClick = { () => props.removeArmy(props.army._id)}
-      >Delete</td>
+      <td className="deletebtn">
+        <HighlightOffIcon
+           style = { {cursor : "pointer", color: "black"}}
+           onClick = { () => props.removeArmy(props.army._id)}
+        ></HighlightOffIcon>
+        Delete
+      </td>
     </tr>
   );
 };

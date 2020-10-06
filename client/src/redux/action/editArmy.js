@@ -5,12 +5,12 @@ function requestStart() {
     type: "REQUEST_USERS_START"
   };
 }
-// function requestSuccess(armies) {
-//   return {
-//     type: "REQUEST_Armies_SUCCESS",
-//     armies
-//   };
-// }
+function requestSuccess(armies) {
+  return {
+    type: "REQUEST_Armies_SUCCESS",
+    armies
+  };
+}
 
 function requestFail(error) {
   return {
@@ -20,13 +20,14 @@ function requestFail(error) {
 }
 
 export function editArmy(id, payload, history) {
-  console.log("history", history)
+  console.log("history", payload)
   return dispatch => {
     dispatch(requestStart());
     axios
       .put(`/api/army/update/${id}`, payload)
       .then(response => {
-       console.log('hahahah')
+        dispatch(requestSuccess([]));
+        history.push('/')
       })
       .catch(error => {
         dispatch(requestFail(error));

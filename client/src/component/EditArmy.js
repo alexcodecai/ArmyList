@@ -24,7 +24,8 @@ function EditArmy({
   getSingleArmy,
   army,
   match,
-  editArmy
+  editArmy,
+  editResult
 }) {
   const [name, setName] = useState(null);
   const [rank, setRank] = useState(null);
@@ -37,9 +38,9 @@ function EditArmy({
   const [show, setShow] = useState(null);
   const [file, setFile] = useState(null);
   const [exSuperiorID, setExSuperiorID] = useState(null);
-  const [superiorID, setSuperiorID] = useState(null);
+  const [superiorID, setSuperiorID] = useState("000000000000000000000000");
   const [soldierID, setsoldierID] = useState(null);
-  const [supcombo, setSupcombo] = useState(null);
+  const [exname, setExname] = useState(null);
 
   const [nameValid, setNameValid] = useState(true);
   const [rankValid, setRankValid] = useState(true);
@@ -55,10 +56,12 @@ function EditArmy({
       const army = request.data;
       console.log("requset!!!!!!!!!!!", army);
 
-      if (army.superiorID === undefined) {
+      if (army.superiorID === null || army.superiorID === undefined) {
         setExSuperiorID("");
       } else {
         setExSuperiorID(army.superiorID._id);
+        setExname(army.superiorID.name);
+        setSuperiorID(army.superiorID._id);
       }
       setsoldierID(army._id);
       setName(army.name);
@@ -68,7 +71,6 @@ function EditArmy({
       setPhoneNumber(army.phone);
       setEmail(army.email);
       setSuperior(army.superior);
-      setSuperiorID(army.superiorID);
       setShow(army.avatar);
     };
     fecthData();
@@ -81,34 +83,6 @@ function EditArmy({
     }
     getall();
   }, []);
-
-  // useEffect(() => {
-  //  async function setInitation() {
-  //   await setinit()
-  //   console.log('123')
-  //  }
-  //  setInitation();
-  // }, []);
-
-  // const setinit = () => {
-  //   if (army !== undefined) {
-  //     if (army.superiorID === undefined) {
-  //       setExSuperiorID("");
-  //     } else {
-  //       setExSuperiorID(army.superiorID._id);
-  //     }
-  //     setsoldierID(army._id);
-  //     setName(army.name);
-  //     setRank(army.rank);
-  //     setSex(army.sex);
-  //     setStartDate(army.startDate);
-  //     setPhoneNumber(army.phone);
-  //     setEmail(army.email);
-  //     setSuperior(army.superior);
-  //     setSuperiorID(army.superiorID);
-  //     setShow(army.avatar);
-  //   }
-  // };
 
   const handleName = e => {
     setName(e.target.value);
@@ -196,17 +170,19 @@ function EditArmy({
 
   const handleSubmit = e => {
     e.preventDefault();
-    editArmy(match.params.id, payload, history);
-    setName("");
-    setRank("");
-    setSex("");
-    setStartDate("");
-    setPhoneNumber("");
-    setEmail("");
-    setSuperior("");
-    setSuperiorID("");
-    setExSuperiorID("");
-    history.push("/");
+    editArmy(match.params.id, payload, history, () => {
+      setName("");
+      setRank("");
+      setSex("");
+      setStartDate("");
+      setPhoneNumber("");
+      setEmail("");
+      setSuperior("");
+      setSuperiorID("");
+      setExSuperiorID("");
+    });
+
+    // history.push("/");
   };
 
   // const handleCancel = e => {
@@ -227,6 +203,7 @@ function EditArmy({
   } else {
     payload.append("avatar", file);
   }
+  payload.append("exname", exname);
   payload.append("exSuperiorID", exSuperiorID);
   payload.append("soldierID", soldierID);
   payload.append("superiorID", superiorID);
@@ -310,23 +287,32 @@ function EditArmy({
                   <p style={{ color: "red" }}>Please select a Rank.</p>
                 )}
                 <label>
-                  <b>Sex: </b>
+                  <b>Sex </b>
                 </label>
-                <select
-                  className="sex"
-                  id="sex"
-                  onChange={handleSex}
-                  value={sex}
-                >
-                  <option value="F">F</option>
-                  <option value="M">M</option>
-                </select>
+                <div>
+                  <input
+                    type="radio"
+                    value="M"
+                    name="gender"
+                    checked={sex === "M"}
+                    onChange={handleSex}
+                  />{" "}
+                  Male
+                  <input
+                    type="radio"
+                    value="F"
+                    name="gender"
+                    checked={sex === "F"}
+                    onChange={handleSex}
+                  />{" "}
+                  Female
+                </div>
                 <br></br>
                 <label>
                   <b>Start Date :</b>
                 </label>
                 <input
-                  type="text"
+                  type="date"
                   placeholder="Enter Date "
                   name="date"
                   id="date"
@@ -339,6 +325,7 @@ function EditArmy({
                     Please enter date as YYYY-MM--DD format.
                   </p>
                 )}
+                <br></br>
                 <label>Offical Phone :</label>
                 <input
                   type="text"
@@ -385,22 +372,7 @@ function EditArmy({
                   ))}
                 </select>
                 <br></br>
-                {/* <label>Superior :</label>
-              <select
-                className="superior"
-                id="superior"
-                onChange={handleSuperior}
-                value={superior}
-              >
-                <option value={superior}></option>
-                {armies.data.map(army => (
-                  <option army={army} key={army._id} value = {army._id}>
-                    {army.name}
-                  </option>
-                ))}
-              </select>
-              <br></br> */}
-
+                {/* {editResult.error && 'cant update'}  */}
                 <button
                   type="submit"
                   className="registerbtn"
@@ -421,7 +393,8 @@ function EditArmy({
 const mapStateToProps = state => {
   return {
     armies: state.armies,
-    army: state.getSingleArmy.data[0]
+    army: state.getSingleArmy.data[0],
+    editResult: state.editArmy
   };
 };
 

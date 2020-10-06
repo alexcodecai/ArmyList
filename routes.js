@@ -31,6 +31,7 @@ const getSingleSoldierController = require("./controllers/getSingleSoldierContro
 const getArmyListController = require("./controllers/getArmyListController");
 const addNewSoldierController = require("./controllers/addNewSoldierController");
 const deleteSoldierController = require("./controllers/deleteSoldierController");
+const updateSoldierController = require("./controllers/updateSoldierController")
 
 //get single soldier
 routes.get("/status", (req, res) => {
@@ -48,7 +49,11 @@ routes.post(
   addNewSoldierController.addSoldier
 );
 
+//update
+routes.put("/api/army/update/:id",upload.single("avatar"), updateSoldierController.updateById)
+
 //delete
 routes.put("/api/army/deleteone/:id", deleteSoldierController.removeSoldier);
+
 
 module.exports = routes;
