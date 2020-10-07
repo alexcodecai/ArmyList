@@ -41,6 +41,7 @@ function EditArmy({
   const [superiorID, setSuperiorID] = useState("000000000000000000000000");
   const [soldierID, setsoldierID] = useState(null);
   const [exname, setExname] = useState(null);
+  const [superiorName, setSuperiorName] = useState('');
 
   const [nameValid, setNameValid] = useState(true);
   const [rankValid, setRankValid] = useState(true);
@@ -60,8 +61,9 @@ function EditArmy({
         setExSuperiorID("");
       } else {
         setExSuperiorID(army.superiorID._id);
-        setExname(army.superiorID.name);
+        // setExname(army.superiorID.name);
         setSuperiorID(army.superiorID._id);
+        setSuperiorName(army.superiorID.name)
       }
       setsoldierID(army._id);
       setName(army.name);
@@ -81,6 +83,7 @@ function EditArmy({
       await getArmies(condition);
       console.log("ffffff", condition);
     }
+    
     getall();
   }, []);
 
@@ -150,13 +153,12 @@ function EditArmy({
   };
 
   const handleSuperior = e => {
-    // console.log("e.target", e.target.value);
-    let value = e.target.value.split("+");
-    // console.log("e.target.name", value);
-    setSuperiorID(value[0]);
-    setSuperior(value[1]);
-    // console.log("superiro", superior);
-    // console.log("after", superiorID);
+    setSuperiorName(e.target.value);
+    setSuperiorID(e.target.children[e.target.selectedIndex].id);
+    // let value = e.target.value.split("+");
+    // setSuperiorID(value[0]);
+    // setSuperior(value[0]);
+  
   };
 
   const handleUploadPic = e => {
@@ -354,21 +356,23 @@ function EditArmy({
                 {!emailValid && (
                   <p style={{ color: "red" }}>Please enter valid email.</p>
                 )}
-                <label>Superior : {superior}</label>
+                <label>Superior : </label>
                 <select
                   className="superior"
                   id="superior"
                   onChange={handleSuperior}
+                  value = {superiorName}
                 >
-                  <option value=" "></option>
+                  <option value=""></option>
                   {armies.data.map(army => (
-                    <option
-                      army={army}
-                      key={army._id}
-                      value={army._id + "+" + army.name}
-                    >
-                      {army.name}
-                    </option>
+                    <option key={army._id} id={army._id} value={army.name}>{army.name}</option>
+                    // <option
+                    //   army={army}
+                    //   key={army._id}
+                    //   value={army._id + "+" + army.name}
+                    // >
+                    //   {army.name}
+                    // </option>
                   ))}
                 </select>
                 <br></br>

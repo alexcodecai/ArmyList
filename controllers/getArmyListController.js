@@ -5,7 +5,7 @@ module.exports = {
     const key = req.query.key;
     const sort = req.query.sort;
     const superiorID = req.query.superiorID;
-    const regex = new RegExp("^" + key, "gi");
+    const regex = new RegExp( key, "gi");
     const subordinate = req.query.subordinate;
     const limit = parseInt(req.query.limit);
     var serach;

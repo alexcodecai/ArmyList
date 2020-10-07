@@ -35,7 +35,7 @@ const seedArmyData = () => {
         avatar:avatar,
         name: name,
         rank: rank,
-        sex: "F",
+        sex: "M",
         startDate: date,
         phone:phone,
         email:email,
